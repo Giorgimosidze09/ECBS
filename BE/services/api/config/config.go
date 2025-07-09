@@ -1,6 +1,9 @@
 package api_config
 
-import "sync"
+import (
+	"os"
+	"sync"
+)
 
 type ApiConfig struct {
 	NatsURL string `json:"NATS_URL"`
@@ -22,4 +25,10 @@ func Get() *ApiConfig {
 		panic("config not initialized. Call config.Set() first.")
 	}
 	return cfg
+}
+
+func LoadFromEnv() *ApiConfig {
+	return &ApiConfig{
+		NatsURL: os.Getenv("NATS_URL"),
+	}
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	dbClient "client/database"
-	"config_manager"
 	"log"
 	"net/http"
 	"os"
@@ -19,11 +18,7 @@ func main() {
 	dir, _ := os.Getwd()
 	log.Println("Running from:", dir)
 
-	cfgManager := config_manager.NewConfigManager[api_config.ApiConfig]("./config.local.json")
-	cfg, err := cfgManager.GetConfig(nil)
-	if err != nil {
-		log.Fatalf("❌ Failed to load config: %v", err)
-	}
+	cfg := api_config.LoadFromEnv()
 	api_config.Set(cfg)
 
 	dbClient.SetupClient(cfg.NatsURL)
@@ -75,6 +70,10 @@ func main() {
 	r.Put("/devices/{id}", handlers.UpdateDeviceHandler)
 	r.Delete("/devices/{id}", handlers.SoftDeleteDeviceHandler)
 
-	log.Println("🚀 API server running on :8080")
-	http.ListenAndServe(":8080", r)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Println("🚀 API server running on :" + port)
+	http.ListenAndServe(":"+port, r)
 }
