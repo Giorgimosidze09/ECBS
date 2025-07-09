@@ -115,7 +115,7 @@ const UsersListPage: React.FC = () => {
           <span style={{ position: 'relative', zIndex: 2 }}>Back to User Creation</span>
         </Link>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
+      <div style={{ maxWidth: 400, width: '100%', marginLeft: 'auto', marginRight: 'auto', marginBottom: 32 }}>
         <GetByIdCard
           label="User"
           fetchById={getUserById}
