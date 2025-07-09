@@ -108,7 +108,7 @@ const DevicesListVisualPage: React.FC = () => {
           <span style={{ position: 'relative', zIndex: 2 }}>Back to Device Management</span>
         </Link>
       </div>
-      <div style={{ maxWidth: 600, margin: '0 auto', marginBottom: 32 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
         <GetByIdCard
           label="Device"
           fetchById={getDeviceById}
