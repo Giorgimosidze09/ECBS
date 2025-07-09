@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Switch, NavLink, useLocation } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
@@ -29,7 +29,7 @@ const activeLinkStyle: React.CSSProperties = {
   transform: 'scale(1.04)',
 };
 
-function AppContent() {
+function Layout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
@@ -41,7 +41,12 @@ function AppContent() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Collapse sidebar by default on Dashboard (mobile)
+  // Only close sidebar on mobile when navigating
+  const handleNavClick = useCallback(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [isMobile]);
+
+  // On dashboard, close sidebar by default on mobile
   useEffect(() => {
     if (isDashboard && isMobile) setSidebarOpen(false);
   }, [isDashboard, isMobile]);
@@ -88,28 +93,28 @@ function AppContent() {
           ×
         </button>
         <h2 className="nav-label" style={{ color: '#c9ada7', marginBottom: '2rem' }}>Admin Dashboard</h2>
-        <NavLink to="/" exact style={linkStyle} activeStyle={activeLinkStyle} onClick={() => setSidebarOpen(false)} className="scale-hover">
+        <NavLink to="/" exact style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Dashboard
         </NavLink>
-        <NavLink to="/users" style={linkStyle} activeStyle={activeLinkStyle} onClick={() => setSidebarOpen(false)} className="scale-hover">
+        <NavLink to="/users" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Users
         </NavLink>
-        <NavLink to="/cards" style={linkStyle} activeStyle={activeLinkStyle} onClick={() => setSidebarOpen(false)} className="scale-hover">
+        <NavLink to="/cards" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Cards
         </NavLink>
-        <NavLink to="/balances" style={linkStyle} activeStyle={activeLinkStyle} onClick={() => setSidebarOpen(false)} className="scale-hover">
+        <NavLink to="/balances" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Balances
         </NavLink>
-        <NavLink to="/validate" style={linkStyle} activeStyle={activeLinkStyle} onClick={() => setSidebarOpen(false)} className="scale-hover">
+        <NavLink to="/validate" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Card Validation
         </NavLink>
-        <NavLink to="/ride" style={linkStyle} activeStyle={activeLinkStyle} onClick={() => setSidebarOpen(false)} className="scale-hover">
+        <NavLink to="/ride" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Ride Cost
         </NavLink>
-        <NavLink to="/activate" style={linkStyle} activeStyle={activeLinkStyle} onClick={() => setSidebarOpen(false)} className="scale-hover">
+        <NavLink to="/activate" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Activate Card
         </NavLink>
-        <NavLink to="/devices" style={linkStyle} activeStyle={activeLinkStyle} onClick={() => setSidebarOpen(false)} className="scale-hover">
+        <NavLink to="/devices" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Devices
         </NavLink>
       </div>
@@ -147,29 +152,35 @@ function AppContent() {
           overflowX: 'auto',
         }}
       >
-        <Switch>
-          <Route path="/" exact component={DashboardPage} />
-          <Route path="/users/list" component={UsersListPage} />
-          <Route path="/users" component={UsersPage} />
-          <Route path="/cards/list" component={CardsListPage} />
-          <Route path="/cards" component={CardsPage} />
-          <Route path="/balances" exact component={BalancesPage} />
-          <Route path="/validate" component={ValidationPage} />
-          <Route path="/ride" component={RideCostPage} />
-          <Route path="/activate" component={ActivateCardPage} />
-          <Route path="/devices" exact component={DevicesListPage} />
-          <Route path="/devices/list" component={DevicesListVisualPage} />
-          <Route path="/balances/list" component={BalancesListPage} />
-          <Route path="/charges/list" component={ChargesListPage} />
-        </Switch>
+        <PageRoutes />
       </div>
     </div>
   );
 }
 
+function PageRoutes() {
+  return (
+    <Switch>
+      <Route path="/" exact component={DashboardPage} />
+      <Route path="/users/list" component={UsersListPage} />
+      <Route path="/users" component={UsersPage} />
+      <Route path="/cards/list" component={CardsListPage} />
+      <Route path="/cards" component={CardsPage} />
+      <Route path="/balances" exact component={BalancesPage} />
+      <Route path="/validate" component={ValidationPage} />
+      <Route path="/ride" component={RideCostPage} />
+      <Route path="/activate" component={ActivateCardPage} />
+      <Route path="/devices" exact component={DevicesListPage} />
+      <Route path="/devices/list" component={DevicesListVisualPage} />
+      <Route path="/balances/list" component={BalancesListPage} />
+      <Route path="/charges/list" component={ChargesListPage} />
+    </Switch>
+  );
+}
+
 const App: React.FC = () => (
   <Router>
-    <AppContent />
+    <Layout />
   </Router>
 );
 
