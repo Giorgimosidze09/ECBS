@@ -1,18 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
+import { fetchUsersList, fetchCardsList } from '../api';
 
 const API_URL = 'http://localhost:8080';
-//const API_URL = 'http://localhost:5204';
+const COLORS = ['var(--color-primary)', 'var(--color-secondary)', 'var(--color-accent)', 'var(--color-bg-dark)'];
 
-const COLORS = ['#4a4e69', '#9a8c98', '#c9ada7', '#22223b'];
+const cardContainerStyle: React.CSSProperties = {
+  flex: 1,
+  maxWidth: 340,
+  minWidth: 220,
+  margin: 8,
+  borderRadius: 'var(--radius)',
+  boxShadow: '0 4px 24px var(--color-shadow)',
+  background: 'var(--color-card)',
+  transition: 'box-shadow var(--transition)',
+  cursor: 'pointer',
+  overflow: 'hidden',
+  position: 'relative',
+};
+
+const expandableContentStyle: React.CSSProperties = {
+  background: 'var(--color-bg)',
+  borderTop: '1px solid var(--color-accent)',
+  padding: '12px 20px',
+  animation: 'fadeIn 0.4s',
+};
 
 const DashboardPage: React.FC = () => {
-  const [stats, setStats] = useState({
-    users: 0,
-    cards: 0,
-    totalBalance: 0,
-  });
+  const [stats, setStats] = useState({ users: 0, cards: 0, totalBalance: 0 });
+  const [usersPreview, setUsersPreview] = useState<any[]>([]);
+  const [cardsPreview, setCardsPreview] = useState<any[]>([]);
+  const [expanded, setExpanded] = useState<'users' | 'cards' | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -26,6 +45,12 @@ const DashboardPage: React.FC = () => {
         totalBalance: balanceRes.data.total,
       });
     });
+    fetchUsersList({ limit: 5, offset: 0 }).then(data => {
+      setUsersPreview(Array.isArray(data) ? data : data.users || []);
+    });
+    fetchCardsList({ limit: 5, offset: 0 }).then(data => {
+      setCardsPreview(Array.isArray(data) ? data : data.cards || []);
+    });
   }, []);
 
   const pieData = [
@@ -34,75 +59,68 @@ const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 32, background: '#f2e9e4', minHeight: '100vh' }}>
-      <h1 style={{ color: '#4a4e69', marginBottom: 32, textAlign: 'center', letterSpacing: 1 }}>Dashboard</h1>
-      <div style={{
-        display: 'flex',
-        gap: 32,
-        marginBottom: 32,
-        flexWrap: 'wrap',
-        justifyContent: 'center'
-      }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #4a4e69 30%, #9a8c98 90%)',
-          color: '#fff',
-          borderRadius: 16,
-          padding: 32,
-          minWidth: 200,
-          boxShadow: '0 4px 24px #4a4e6922',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: 0, fontWeight: 600 }}>Total Users</h3>
-          <p style={{ fontSize: 40, margin: 0, fontWeight: 700 }}>{stats.users}</p>
+    <div className="fade-in" style={{ padding: '32px 0', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <h1 style={{ color: 'var(--color-primary)', marginBottom: 32, textAlign: 'center', letterSpacing: 1, fontWeight: 800, fontSize: 36 }}>Dashboard</h1>
+      <div style={{ display: 'flex', gap: 32, marginBottom: 32, flexWrap: 'wrap', justifyContent: 'center', width: '100%', maxWidth: 1200 }}>
+        {/* Users Expandable Card */}
+        <div
+          className={`scale-hover fade-in`}
+          style={{ ...cardContainerStyle, background: 'linear-gradient(135deg, var(--color-primary) 30%, var(--color-secondary) 90%)', color: '#fff' }}
+          onClick={() => setExpanded(expanded === 'users' ? null : 'users')}
+        >
+          <h3 style={{ margin: '24px 0 0 0', fontWeight: 600, textAlign: 'center' }}>Total Users</h3>
+          <p style={{ fontSize: 40, margin: 0, fontWeight: 700, textAlign: 'center' }}>{stats.users}</p>
+          <div style={{ textAlign: 'center', fontSize: 14, opacity: 0.8, marginBottom: 8 }}>Click to preview</div>
+          {expanded === 'users' && (
+            <div style={expandableContentStyle}>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Top Users</div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {usersPreview.map((user, idx) => (
+                  <li key={user.id} style={{ padding: '4px 0', borderBottom: idx < usersPreview.length - 1 ? '1px solid #eee' : 'none' }}>
+                    <span style={{ fontWeight: 600 }}>{user.name}</span> <span style={{ color: '#eee', fontSize: 13 }}>({user.email})</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="/users/list" style={{ display: 'inline-block', marginTop: 12, color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none', background: '#fff', borderRadius: 8, padding: '6px 18px', boxShadow: '0 2px 8px var(--color-shadow)', transition: 'background 0.2s' }}>View All Users</a>
+            </div>
+          )}
         </div>
-        <div style={{
-          background: 'linear-gradient(135deg, #9a8c98 30%, #c9ada7 90%)',
-          color: '#22223b',
-          borderRadius: 16,
-          padding: 32,
-          minWidth: 200,
-          boxShadow: '0 4px 24px #9a8c9822',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: 0, fontWeight: 600 }}>Total Cards</h3>
-          <p style={{ fontSize: 40, margin: 0, fontWeight: 700 }}>{stats.cards}</p>
+        {/* Cards Expandable Card */}
+        <div
+          className={`scale-hover fade-in`}
+          style={{ ...cardContainerStyle, background: 'linear-gradient(135deg, var(--color-secondary) 30%, var(--color-accent) 90%)', color: '#22223b' }}
+          onClick={() => setExpanded(expanded === 'cards' ? null : 'cards')}
+        >
+          <h3 style={{ margin: '24px 0 0 0', fontWeight: 600, textAlign: 'center' }}>Total Cards</h3>
+          <p style={{ fontSize: 40, margin: 0, fontWeight: 700, textAlign: 'center' }}>{stats.cards}</p>
+          <div style={{ textAlign: 'center', fontSize: 14, opacity: 0.8, marginBottom: 8 }}>Click to preview</div>
+          {expanded === 'cards' && (
+            <div style={expandableContentStyle}>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Top Cards</div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {cardsPreview.map((card, idx) => (
+                  <li key={card.id} style={{ padding: '4px 0', borderBottom: idx < cardsPreview.length - 1 ? '1px solid #eee' : 'none' }}>
+                    <span style={{ fontWeight: 600 }}>Card #{card.card_id}</span> <span style={{ color: '#888', fontSize: 13 }}>User: {card.user_id}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="/cards/list" style={{ display: 'inline-block', marginTop: 12, color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none', background: '#fff', borderRadius: 8, padding: '6px 18px', boxShadow: '0 2px 8px var(--color-shadow)', transition: 'background 0.2s' }}>View All Cards</a>
+            </div>
+          )}
         </div>
-        <div style={{
-          background: 'linear-gradient(135deg, #c9ada7 30%, #f2e9e4 90%)',
-          color: '#22223b',
-          borderRadius: 16,
-          padding: 32,
-          minWidth: 200,
-          boxShadow: '0 4px 24px #c9ada722',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: 0, fontWeight: 600 }}>Total Balance</h3>
-          <p style={{ fontSize: 40, margin: 0, fontWeight: 700 }}>{stats.totalBalance}</p>
+        {/* Total Balance Card (not expandable) */}
+        <div className="scale-hover fade-in" style={{ ...cardContainerStyle, background: 'linear-gradient(135deg, var(--color-accent) 30%, var(--color-bg) 90%)', color: '#22223b', cursor: 'default' }}>
+          <h3 style={{ margin: '24px 0 0 0', fontWeight: 600, textAlign: 'center' }}>Total Balance</h3>
+          <p style={{ fontSize: 40, margin: 0, fontWeight: 700, textAlign: 'center' }}>{stats.totalBalance}</p>
         </div>
       </div>
-      <div style={{
-        background: '#fff',
-        borderRadius: 16,
-        padding: 32,
-        maxWidth: 440,
-        margin: '0 auto',
-        boxShadow: '0 4px 24px #22223b22'
-      }}>
-        <h3 style={{ color: '#4a4e69', marginBottom: 16, textAlign: 'center' }}>Users vs Cards</h3>
-        <ResponsiveContainer width="100%" height={250}>
+      <div className="fade-in" style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: 'var(--radius)', boxShadow: '0 4px 24px var(--color-shadow)', padding: 24, marginTop: 16 }}>
+        <h3 style={{ textAlign: 'center', color: 'var(--color-primary)', fontWeight: 700, marginBottom: 16 }}>Users vs Cards</h3>
+        <ResponsiveContainer width="100%" height={220}>
           <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={80}
-              fill="#8884d8"
-              label
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+              {pieData.map((entry, idx) => (
+                <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip />
