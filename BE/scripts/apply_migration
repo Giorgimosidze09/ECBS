@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Exit on error
+set -e
+
+ENV_FILE=${1:-"./services/database/atlas/.env"}
+
+POSTGRES_URL="postgres://postgres:password@localhost:5432/elevator?sslmode=disable"
+MIGRATIONS_DIR="file://services/database/migrations"
+
+# Load environment variables if the file exists
+if [ -f "$ENV_FILE" ]; then
+  echo "🔍 Loading environment variables from $ENV_FILE"
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+else
+  echo "⚠️ Warning: Env file '$ENV_FILE' not found. Proceeding with defaults."
+fi
+
+# Run Atlas apply
+echo "🚀 Applying migrations to $POSTGRES_URL"
+
+atlas migrate apply \
+  --url "$POSTGRES_URL" \
+  --dir "$MIGRATIONS_DIR"
+
+echo "✅ Migration generated successfully!"

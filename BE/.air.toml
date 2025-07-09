@@ -1,0 +1,10 @@
+tmp_dir = "build"  # Common build directory
+
+[build]
+  delay = 500
+  exclude_dir = ["build"]
+
+  pre_cmd = ["./scripts/start_servers"]
+  
+  cmd = "./scripts/build_services"
+  bin = "scripts/run_services"

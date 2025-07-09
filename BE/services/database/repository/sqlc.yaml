@@ -1,0 +1,72 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "./schema.sql"
+    schema: "./schema.sql"
+    gen:
+      go:
+        package: "repository_models"
+        out: "./model"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+  - engine: "postgresql"
+    queries: "./users/queries.sql"
+    schema: "./schema.sql"
+    gen:
+      go:
+        package: "repository_users"
+        out: "./users"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        omit_unused_structs: true
+  # - engine: "postgresql"
+  #   schema: "./schema.sql"
+  #   queries: "./cards/queries.sql"
+  #   gen:
+  #     go:
+  #       package: "repository_cards"
+  #       out: "./cards"
+  #       sql_package: "pgx/v5"
+  #       emit_json_tags: true
+  #       omit_unused_structs: true
+  # - engine: "postgresql"
+  #   schema: "./schema.sql"
+  #   queries: "./balances/queries.sql"
+  #   gen:
+  #     go:
+  #       package: "repository_balances"
+  #       out: "./balances"
+  #       sql_package: "pgx/v5"
+  #       emit_json_tags: true
+  #       omit_unused_structs: true
+  # - engine: "postgresql"
+  #   schema: "./schema.sql"
+  #   queries: "./trips/queries.sql"
+  #   gen:
+  #     go:
+  #       package: "repository_trips"
+  #       out: "./trips"
+  #       sql_package: "pgx/v5"
+  #       emit_json_tags: true
+  #       omit_unused_structs: true
+  # - engine: "postgresql"
+  #   schema: "./schema.sql"
+  #   queries: "./charges/queries.sql"
+  #   gen:
+  #     go:
+  #       package: "repository_charges"
+  #       out: "./charges"
+  #       sql_package: "pgx/v5"
+  #       emit_json_tags: true
+  #       omit_unused_structs: true
+  # - engine: "postgresql"
+  #   schema: "./schema.sql"
+  #   queries: "./devices/queries.sql"
+  #   gen:
+  #     go:
+  #       package: "repository_devices"
+  #       out: "./devices"
+  #       sql_package: "pgx/v5"
+  #       emit_json_tags: true
+  #       omit_unused_structs: true
+ 

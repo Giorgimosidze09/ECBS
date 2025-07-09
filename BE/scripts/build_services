@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Set the build output directory
+BUILD_DIR="./build"
+mkdir -p "$BUILD_DIR"
+
+# List of services to build
+SERVICES=(
+ 
+  "database" 
+  "api" 
+)
+
+echo "🔨 Building services..."
+for SERVICE in "${SERVICES[@]}"; do
+  echo "🔨 Building $SERVICE..."
+  go build -o "$BUILD_DIR/${SERVICE}_service" "./services/$SERVICE"
+  if [ $? -ne 0 ]; then
+    echo "❌ Failed to build $SERVICE!"
+    exit 1
+  fi
+done
+echo "✅ All services built successfully!"

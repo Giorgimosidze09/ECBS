@@ -1,0 +1,6 @@
+.vscode
+build
+**/.env
+.keys
+.tmp
+node_modules/

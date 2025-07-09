@@ -1,0 +1,37 @@
+#!/bin/sh
+
+BUILD_DIR="./build"
+mkdir -p "$BUILD_DIR"
+
+wait_for_server() {
+  local server_name=$1
+  local port=$2
+
+  echo "⏳ Waiting for $server_name to be ready on port $port..."
+  for i in {1..10}; do
+    if nc -z localhost "$port"; then
+      echo "✅ $server_name is running!"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "❌ $server_name did not start in time!"
+  exit 1
+}
+
+if ! nc -z localhost 4222; then
+  echo "🚀 Starting NATS server with JetStream enabled..."
+  nats-server --jetstream & 
+  NATS_PID=$!
+  wait_for_server "NATS server" 4222
+else
+  echo "✅ NATS server is already running."
+fi
+
+if ! docker ps | grep -q "postgres-db"; then
+  echo "🚀 Starting PostgreSQL container..."
+  docker-compose up -d postgres
+  wait_for_server "PostgreSQL" 5432
+else
+  echo "✅ PostgreSQL is already running."
+fi

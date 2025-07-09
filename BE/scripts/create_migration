@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Exit on error
+set -e
+
+# Ensure migration name is provided
+if [ -z "$1" ]; then
+  echo "❌ Error: Please provide a migration name."
+  echo "Usage: $0 <migration_name>"
+  exit 1
+fi
+
+# Define variables
+MIGRATION_NAME=$1
+ENV_FILE=${2:-"./services/database/atlas/.env"}
+
+DEV_URL="postgres://postgres:password@localhost:5432/elevator_empty?sslmode=disable"
+MIGRATIONS_DIR="file://services/database/migrations"
+SCHEMA_SOURCE="file://services/database/repository/schema.sql"
+
+# Load environment variables if the file exists
+if [ -f "$ENV_FILE" ]; then
+  echo "🔍 Loading environment variables from $ENV_FILE"
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+else
+  echo "⚠️ Warning: Env file '$ENV_FILE' not found. Proceeding with defaults."
+fi
+
+
+# Run Atlas migration diff
+echo "🔍 Generating migration: $MIGRATION_NAME..."
+
+atlas migrate diff "$MIGRATION_NAME" \
+  --dev-url "$DEV_URL" \
+  --dir "$MIGRATIONS_DIR" \
+  --to "$SCHEMA_SOURCE"
+
+echo "✅ Migration generated successfully!"

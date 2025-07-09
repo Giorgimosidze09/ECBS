@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e  # Exit immediately on error
+
+# Start servers
+echo "🔧 Starting servers..."
+./scripts/start_servers
+
+# Build services
+echo "🔨 Building services..."
+./scripts/build_services
+
+# Run services
+echo "🚀 Running services..."
+exec ./scripts/run_services  # Use exec so signals (e.g., Ctrl+C) work properly

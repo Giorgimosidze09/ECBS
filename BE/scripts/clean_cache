@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Find all go.mod files and run `go clean -cache` in their respective directories
+find . -name "go.mod" -execdir go clean -cache \;
+
+echo "Go cache cleaned successfully!"

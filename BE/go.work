@@ -1,0 +1,12 @@
+go 1.23.3
+
+use (
+	./services/database
+	./services/api
+	./shared/clients/nats-client
+	./shared/common
+	./shared/config-manager
+	./shared/clients/database-client
+	
+
+)

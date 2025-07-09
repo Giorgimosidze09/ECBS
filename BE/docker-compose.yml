@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  nats:
+    image: nats:latest
+    container_name: nats-server
+    networks:
+      - nats-network
+
+
+  users:
+    build:
+      context: . # Specify the service directory
+      dockerfile: Dockerfile # Use the Dockerfile in the root directory
+      args:
+        SERVICE_NAME: users
+    container_name: users
+    environment:
+      - NATS_URL=nats://nats-server:4222
+    depends_on:
+      - nats
+    networks:
+      - nats-network
+
+  # Global Database Service
+  database:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: database
+    container_name: database
+    environment:
+      - NATS_URL=nats://nats-server:4222
+      - DATABASE_URL=postgres://postgres:password@postgres-db:5432/elevator?sslmode=disable
+    depends_on:
+      - nats
+      - postgres
+    networks:
+      - nats-network
+
+  
+
+      # PostgreSQL database
+  postgres:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: elevator
+    ports:
+      - "5432:5432"
+    networks:
+      - nats-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+networks:
+  nats-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

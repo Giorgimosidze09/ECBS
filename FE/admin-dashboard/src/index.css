@@ -1,0 +1,49 @@
+.styled-label {
+  font-weight: 600;
+  color: #22223b;
+  display: block;
+  margin-bottom: 4px;
+  margin-top: 16px;
+  letter-spacing: 0.5px;
+  font-size: 1rem;
+}
+.styled-input {
+  padding: 10px 14px;
+  border: 1.5px solid #c9ada7;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  width: 100%;
+  background: #f2e9e4;
+  transition: border 0.2s, box-shadow 0.2s;
+  margin-top: 2px;
+}
+.styled-input:focus {
+  border: 1.5px solid #111114;
+  outline: none;
+  box-shadow: 0 0 0 2px #0f0e0f33;
+}
+.styled-button {
+  background: linear-gradient(90deg, #4a4e69 0%, #9a8c98 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 100%;
+  margin-top: 18px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.styled-button:hover {
+  background: linear-gradient(90deg, #22223b 0%, #c9ada7 100%);
+  transform: scale(1.03);
+}
+
+.styled-input {
+  background: #f2e9e4;
+  color: #22223b;        
+  transition: border 0.2s, box-shadow 0.2s;
+  margin-top: 2px;
+}

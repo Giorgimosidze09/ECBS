@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Find all go.mod files and run `go mod tidy` in their respective directories
+find . -name "go.mod" -execdir go mod tidy \;
+
+echo "Go modules tidied successfully!"
