@@ -81,6 +81,16 @@ CREATE TABLE IF NOT EXISTS auth_users (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE paybox_transactions (
+  id UUID PRIMARY KEY,
+  card_id INT NOT NULL,
+  amount DOUBLE PRECISION NOT NULL,
+  source TEXT DEFAULT 'paybox',
+  transaction_id TEXT UNIQUE, -- provided by TBCPay
+  created_at TIMESTAMP DEFAULT now()
+);
+
+
 
 CREATE INDEX idx_cards_card_id ON cards(card_id);
 CREATE INDEX idx_trips_user_id ON trips(user_id);

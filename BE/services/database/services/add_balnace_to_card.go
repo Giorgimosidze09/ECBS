@@ -8,6 +8,8 @@ import (
 	"log"
 	"shared/common/dto"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func AddBalanceToCard(input dto.PayboxTopupRequest) error {
@@ -21,22 +23,32 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 
 	q := repository_user.New(tx)
 
-	pramas := AddBalanceToCardParams(input)
-	total, err := q.AddBalanceToCard(ctx, pramas)
-	log.Printf("balance list: %v", total)
+	// 1. Check for duplicate transaction
+	exists, err := q.CheckPayboxTransactionExists(ctx, pgtype.Text{String: input.TransactionID, Valid: true})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to check for duplicate transaction: %v", err)
+	}
+	if exists {
+		log.Printf("transaction already processed: %s", input.TransactionID)
+		return nil
 	}
 
-	// Fetch card info
+	// 2. Add balance to card
+	params := AddBalanceToCardParams(input)
+	total, err := q.AddBalanceToCard(ctx, params)
+	if err != nil {
+		return fmt.Errorf("failed to add balance: %v", err)
+	}
+	log.Printf("balance updated: card_id=%d, new_total=%v", input.CardID, total)
+
+	// 3. Fetch card info
 	cardRow, err := q.GetCardByID(ctx, int32(input.CardID))
 	if err != nil {
 		return fmt.Errorf("failed to fetch card: %v", err)
 	}
 
-	// Subscription activation logic
+	// 4. Handle subscription logic
 	if input.Amount >= 15 {
-		// Activate subscription for 30 days
 		activationStart := time.Now()
 		activationEnd := activationStart.AddDate(0, 0, 30)
 		activation := dto.CardActivation{
@@ -58,9 +70,9 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 			Active:   cardRow.Active,
 		}
 		if err := q.UpdateCard(ctx, updateParams); err != nil {
-			return fmt.Errorf("failed to update card type to activation: %v", err)
+			return fmt.Errorf("failed to update card to activation: %v", err)
 		}
-	} else if input.Amount < 15 {
+	} else {
 		// Change card type to 'balance'
 		updateParams := repository_user.UpdateCardParams{
 			ID:       cardRow.ID,
@@ -71,14 +83,27 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 			Active:   cardRow.Active,
 		}
 		if err := q.UpdateCard(ctx, updateParams); err != nil {
-			return fmt.Errorf("failed to update card type to balance: %v", err)
+			return fmt.Errorf("failed to update card to balance: %v", err)
 		}
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return err
+	// 5. Log paybox transaction
+	logParams := repository_user.CreatePayboxTransactionParams{
+		TransactionID: pgtype.Text{String: input.TransactionID, Valid: true},
+		CardID:        int32(input.CardID),
+		Amount:        input.Amount,
+		Source:        pgtype.Text{String: "paybox", Valid: true},
+		CreatedAt:     pgtype.Timestamp{Time: time.Now(), Valid: true},
+	}
+	if err := q.CreatePayboxTransaction(ctx, logParams); err != nil {
+		return fmt.Errorf("failed to log paybox transaction: %v", err)
 	}
 
+	// 6. Commit
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
+	log.Printf("paybox top-up successful: card_id=%d, amount=%.2f", input.CardID, input.Amount)
 	return nil
 }

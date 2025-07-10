@@ -208,6 +208,19 @@ func (q *Queries) ChargesList(ctx context.Context, arg ChargesListParams) ([]Cha
 	return items, nil
 }
 
+const checkPayboxTransactionExists = `-- name: CheckPayboxTransactionExists :one
+SELECT EXISTS (
+  SELECT 1 FROM paybox_transactions WHERE transaction_id = $1
+)
+`
+
+func (q *Queries) CheckPayboxTransactionExists(ctx context.Context, transactionID pgtype.Text) (bool, error) {
+	row := q.db.QueryRow(ctx, checkPayboxTransactionExists, transactionID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const costOfRide = `-- name: CostOfRide :exec
 UPDATE balances
 SET
@@ -374,6 +387,30 @@ func (q *Queries) CreateDevice(ctx context.Context, arg CreateDeviceParams) (Dev
 		&i.Active,
 	)
 	return i, err
+}
+
+const createPayboxTransaction = `-- name: CreatePayboxTransaction :exec
+INSERT INTO paybox_transactions (transaction_id, card_id, amount, source, created_at)
+VALUES ($1, $2, $3, $4, $5)
+`
+
+type CreatePayboxTransactionParams struct {
+	TransactionID pgtype.Text      `json:"transaction_id"`
+	CardID        int32            `json:"card_id"`
+	Amount        float64          `json:"amount"`
+	Source        pgtype.Text      `json:"source"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+}
+
+func (q *Queries) CreatePayboxTransaction(ctx context.Context, arg CreatePayboxTransactionParams) error {
+	_, err := q.db.Exec(ctx, createPayboxTransaction,
+		arg.TransactionID,
+		arg.CardID,
+		arg.Amount,
+		arg.Source,
+		arg.CreatedAt,
+	)
+	return err
 }
 
 const createUser = `-- name: CreateUser :one

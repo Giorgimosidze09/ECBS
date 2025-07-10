@@ -64,6 +64,15 @@ type Device struct {
 	Active      pgtype.Bool        `json:"active"`
 }
 
+type PayboxTransaction struct {
+	ID            pgtype.UUID      `json:"id"`
+	CardID        int32            `json:"card_id"`
+	Amount        float64          `json:"amount"`
+	Source        pgtype.Text      `json:"source"`
+	TransactionID pgtype.Text      `json:"transaction_id"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+}
+
 type Trip struct {
 	ID        int32              `json:"id"`
 	UserID    pgtype.Int4        `json:"user_id"`

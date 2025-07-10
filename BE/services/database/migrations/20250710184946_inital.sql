@@ -8,6 +8,17 @@ CREATE TABLE "public"."devices" (
   PRIMARY KEY ("id"),
   CONSTRAINT "devices_device_id_key" UNIQUE ("device_id")
 );
+-- Create "paybox_transactions" table
+CREATE TABLE "public"."paybox_transactions" (
+  "id" uuid NOT NULL,
+  "card_id" integer NOT NULL,
+  "amount" double precision NOT NULL,
+  "source" text NULL DEFAULT 'paybox',
+  "transaction_id" text NULL,
+  "created_at" timestamp NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  CONSTRAINT "paybox_transactions_transaction_id_key" UNIQUE ("transaction_id")
+);
 -- Create "auth_users" table
 CREATE TABLE "public"."auth_users" (
   "id" serial NOT NULL,

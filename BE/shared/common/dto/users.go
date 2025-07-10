@@ -69,6 +69,7 @@ type CardOutput struct {
 }
 
 type PayboxTopupRequest struct {
-	CardID int     `json:"card_id"`
-	Amount float64 `json:"amount"`
+	CardID        int     `json:"card_id"`
+	Amount        float64 `json:"amount"`
+	TransactionID string  `json:"transaction_id"`
 }

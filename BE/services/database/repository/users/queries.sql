@@ -224,3 +224,12 @@ SELECT c.id, c.card_id, c.user_id, c.active, c.type, u.name as user_name
 FROM cards c
 JOIN users u ON u.id = c.user_id
 WHERE c.card_id = $1;
+
+-- name: CheckPayboxTransactionExists :one
+SELECT EXISTS (
+  SELECT 1 FROM paybox_transactions WHERE transaction_id = $1
+);
+
+-- name: CreatePayboxTransaction :exec
+INSERT INTO paybox_transactions (transaction_id, card_id, amount, source, created_at)
+VALUES ($1, $2, $3, $4, $5);

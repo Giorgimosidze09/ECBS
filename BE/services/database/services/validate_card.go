@@ -39,7 +39,8 @@ func ValidateCard(input dto.ValidateCardInput) (*dto.ValidateCardOutput, error) 
 	}
 
 	// Check card type logic
-	if card.Type == "balance" {
+	switch card.Type {
+	case "balance":
 		// Existing balance logic
 		// Get balance row for user
 		balanceRow, err := q.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
@@ -127,7 +128,7 @@ func ValidateCard(input dto.ValidateCardInput) (*dto.ValidateCardOutput, error) 
 			Balance:  balance - rideCostValue,
 			Message:  "Charge applied, ride allowed",
 		}, nil
-	} else if card.Type == "activation" {
+	case "activation":
 		// Activation card logic: check card_activations for valid period
 		var isActive bool
 		row := tx.QueryRow(ctx, "SELECT activation_start, activation_end FROM card_activations WHERE card_id = $1 ORDER BY activation_end DESC LIMIT 1", card.ID)
