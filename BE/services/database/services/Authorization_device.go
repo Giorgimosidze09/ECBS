@@ -35,6 +35,12 @@ func Authorization(input dto.AuthorizedInput) ([]dto.AuthorizedAccessSyncDTO, er
 			Active:   row.Active.Bool,
 		}
 
+		// Add PinCode if present
+		if row.PinCode.Valid {
+			pin := row.PinCode.String
+			r.PinCode = &pin
+		}
+
 		if row.Balance.Valid {
 			f, _ := row.Balance.Float64Value()
 			r.Balance = &f.Float64

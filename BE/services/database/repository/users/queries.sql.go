@@ -358,9 +358,19 @@ type CreateUserParams struct {
 	Phone pgtype.Text `json:"phone"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+type CreateUserRow struct {
+	ID        int32              `json:"id"`
+	Name      string             `json:"name"`
+	Email     pgtype.Text        `json:"email"`
+	Phone     pgtype.Text        `json:"phone"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	Deleted   pgtype.Bool        `json:"deleted"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRow(ctx, createUser, arg.Name, arg.Email, arg.Phone)
-	var i User
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -492,6 +502,7 @@ SELECT
     c.card_id,
     u.id AS user_id,
     u.name AS user_name,
+    u.pin_code, 
     c.type,
     c.active,
     b.balance,
@@ -516,6 +527,7 @@ type GetAuthorizedAccessByDeviceUniqueIDRow struct {
 	CardID          string         `json:"card_id"`
 	UserID          int32          `json:"user_id"`
 	UserName        string         `json:"user_name"`
+	PinCode         pgtype.Text    `json:"pin_code"`
 	Type            string         `json:"type"`
 	Active          pgtype.Bool    `json:"active"`
 	Balance         pgtype.Numeric `json:"balance"`
@@ -537,6 +549,7 @@ func (q *Queries) GetAuthorizedAccessByDeviceUniqueID(ctx context.Context, devic
 			&i.CardID,
 			&i.UserID,
 			&i.UserName,
+			&i.PinCode,
 			&i.Type,
 			&i.Active,
 			&i.Balance,

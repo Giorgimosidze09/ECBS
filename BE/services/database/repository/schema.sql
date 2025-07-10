@@ -8,6 +8,7 @@ CREATE TABLE users (
     phone VARCHAR(50),
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ,
+    pin_code VARCHAR(20),
     deleted BOOLEAN DEFAULT FALSE
 );
 

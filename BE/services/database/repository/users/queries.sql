@@ -160,6 +160,7 @@ SELECT
     c.card_id,
     u.id AS user_id,
     u.name AS user_name,
+    u.pin_code, 
     c.type,
     c.active,
     b.balance,

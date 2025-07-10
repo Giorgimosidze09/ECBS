@@ -80,5 +80,6 @@ type User struct {
 	Phone     pgtype.Text        `json:"phone"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	PinCode   pgtype.Text        `json:"pin_code"`
 	Deleted   pgtype.Bool        `json:"deleted"`
 }

@@ -24,7 +24,7 @@ func CreateDeviceParams(input dto.DevicesInput) repository_user.CreateDevicePara
 	}
 }
 
-func ConvertOutput(input repository_user.User) *dto.UserOutput {
+func ConvertOutput(input repository_user.CreateUserRow) *dto.UserOutput {
 	return &dto.UserOutput{
 		ID:    input.ID,
 		Name:  input.Name,

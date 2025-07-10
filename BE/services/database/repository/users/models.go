@@ -34,13 +34,3 @@ type Device struct {
 	InstalledAt pgtype.Timestamptz `json:"installed_at"`
 	Active      pgtype.Bool        `json:"active"`
 }
-
-type User struct {
-	ID        int32              `json:"id"`
-	Name      string             `json:"name"`
-	Email     pgtype.Text        `json:"email"`
-	Phone     pgtype.Text        `json:"phone"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-	Deleted   pgtype.Bool        `json:"deleted"`
-}
