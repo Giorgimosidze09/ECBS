@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_cards "database/repository/cards"
 	"fmt"
 	"shared/common/dto"
 )
@@ -16,7 +16,7 @@ func AddCardActivation(input dto.CardActivation) (*dto.CardActivation, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_cards.New(tx)
 	params := CreateCardActivationParams(input)
 	created, err := q.CreateCardActivation(ctx, params)
 	if err != nil {

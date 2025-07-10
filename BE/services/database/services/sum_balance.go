@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_balances "database/repository/balances"
 	"fmt"
 	"log"
 	"shared/common/dto"
@@ -20,7 +20,7 @@ func SumBalance(input dto.CustomerSumBalanceRequest) (*dto.CustomerSumBalanceRes
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_balances.New(tx)
 
 	total, err := q.GetSumBalanceByDeviceID(context.Background(), input.DeviceID)
 	log.Printf("balance list: %v", total)

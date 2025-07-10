@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_devices "database/repository/devices"
 	"fmt"
 	"shared/common/dto"
 )
@@ -17,7 +17,7 @@ func Authorization(input dto.AuthorizedInput) ([]dto.AuthorizedAccessSyncDTO, er
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_devices.New(tx)
 
 	rows, err := q.GetAuthorizedAccessByDeviceUniqueID(ctx, input.DeviceID)
 	if err != nil {

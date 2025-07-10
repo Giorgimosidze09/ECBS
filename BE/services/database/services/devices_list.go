@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_devices "database/repository/devices"
 	"fmt"
 	"log"
 	"shared/common/dto"
@@ -20,7 +20,7 @@ func DevicesList(input dto.UsersListInput) ([]*dto.DevicesOutput, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_devices.New(tx)
 
 	pramas := ConvertDevicesListInput(input)
 	total, err := q.DeviceList(ctx, pramas)
@@ -49,8 +49,8 @@ func UpdateDevice(input dto.DeviceOutput) error {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
-	params := repository_user.UpdateDeviceParams{
+	q := repository_devices.New(tx)
+	params := repository_devices.UpdateDeviceParams{
 		ID:       int32(input.ID),
 		DeviceID: input.DeviceID,
 		Location: pgtype.Text{String: input.Location, Valid: true},
@@ -70,7 +70,7 @@ func SoftDeleteDevice(deviceID int32) error {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_devices.New(tx)
 	if err := q.SoftDeleteDevice(ctx, deviceID); err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func SoftDeleteDevice(deviceID int32) error {
 
 func GetDeviceByID(deviceID int32) (*dto.DeviceOutput, error) {
 	ctx := context.Background()
-	q := repository_user.New(database.DB)
+	q := repository_devices.New(database.DB)
 	row, err := q.GetDeviceByID(ctx, deviceID)
 	if err != nil {
 		return nil, err

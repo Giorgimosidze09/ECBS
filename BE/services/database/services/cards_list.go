@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_cards "database/repository/cards"
 	"fmt"
 	"log"
 	"shared/common/dto"
@@ -20,7 +20,7 @@ func CardsList(input dto.UsersListInput) ([]*dto.CardOutput, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_cards.New(tx)
 
 	pramas := ConvertCardsListInput(input)
 	total, err := q.CardsList(context.Background(), pramas)
@@ -59,8 +59,8 @@ func UpdateCard(input dto.CardOutput) error {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
-	params := repository_user.UpdateCardParams{
+	q := repository_cards.New(tx)
+	params := repository_cards.UpdateCardParams{
 		ID:       int32(input.ID),
 		CardID:   input.CardID,
 		UserID:   int32(input.UserID),
@@ -82,7 +82,7 @@ func SoftDeleteCard(cardID int32) error {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_cards.New(tx)
 	if err := q.SoftDeleteCard(ctx, cardID); err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func SoftDeleteCard(cardID int32) error {
 
 func GetCardByID(cardID int32) (*dto.CardOutput, error) {
 	ctx := context.Background()
-	q := repository_user.New(database.DB)
+	q := repository_cards.New(database.DB)
 	row, err := q.GetCardByID(ctx, cardID)
 	if err != nil {
 		return nil, err

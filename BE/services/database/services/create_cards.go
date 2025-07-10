@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_cards "database/repository/cards"
 	"fmt"
 	"shared/common/dto"
 
@@ -19,7 +19,7 @@ func CreateCard(input dto.AssignCardInput) (*dto.CardOutput, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_cards.New(tx)
 
 	dbParams := CreateCardParams(input)
 
@@ -30,7 +30,7 @@ func CreateCard(input dto.AssignCardInput) (*dto.CardOutput, error) {
 
 	// If type is activation and dates are provided, insert into card_activations
 	if input.Type == "activation" && input.ActivationStart != "" && input.ActivationEnd != "" {
-		activationParams := repository_user.CreateCardActivationParams{
+		activationParams := repository_cards.CreateCardActivationParams{
 			CardID:          card.ID,
 			ActivationStart: parseDate(input.ActivationStart),
 			ActivationEnd:   parseDate(input.ActivationEnd),

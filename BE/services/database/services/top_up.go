@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_balances "database/repository/balances"
 	"fmt"
 	"log"
 	"shared/common/dto"
@@ -18,7 +18,7 @@ func TopUpBalance(input dto.TopUpInput) (*dto.BalanceOutput, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_balances.New(tx)
 
 	dbParams := CreateBalanceParams(input)
 

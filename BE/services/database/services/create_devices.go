@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_devices "database/repository/devices"
 	"fmt"
 	"log"
 	"shared/common/dto"
@@ -18,7 +18,7 @@ func CreateDevices(input dto.DevicesInput) (*dto.DevicesOutput, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_devices.New(tx)
 
 	dbParams := CreateDeviceParams(input)
 

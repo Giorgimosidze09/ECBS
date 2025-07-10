@@ -3,6 +3,8 @@ package core
 import (
 	"context"
 	database "database/db"
+	repository_balances "database/repository/balances"
+	repository_cards "database/repository/cards"
 	repository_user "database/repository/users"
 	"fmt"
 	"log"
@@ -20,7 +22,7 @@ func CountCards() (*dto.CountOutput, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_cards.New(tx)
 
 	countCards, err := q.CountCards(context.Background())
 
@@ -72,9 +74,9 @@ func TotalBalance() (*dto.TotalBalanceOutput, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	balances := repository_balances.New(tx)
 
-	total, err := q.TotalBalance(context.Background())
+	total, err := balances.TotalBalance(context.Background())
 	if err != nil {
 		return nil, err
 	}

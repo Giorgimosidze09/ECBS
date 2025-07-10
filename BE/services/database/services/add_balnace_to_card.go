@@ -3,7 +3,9 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_balances "database/repository/balances"
+	repository_cards "database/repository/cards"
+	repository_paybox "database/repository/paybox"
 	"fmt"
 	"log"
 	"shared/common/dto"
@@ -21,7 +23,9 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_paybox.New(tx)
+	balances := repository_balances.New(tx)
+	cards := repository_cards.New(tx)
 
 	// 1. Check for duplicate transaction
 	exists, err := q.CheckPayboxTransactionExists(ctx, pgtype.Text{String: input.TransactionID, Valid: true})
@@ -35,14 +39,14 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 
 	// 2. Add balance to card
 	params := AddBalanceToCardParams(input)
-	total, err := q.AddBalanceToCard(ctx, params)
+	total, err := balances.AddBalanceToCard(ctx, params)
 	if err != nil {
 		return fmt.Errorf("failed to add balance: %v", err)
 	}
 	log.Printf("balance updated: card_id=%d, new_total=%v", input.CardID, total)
 
 	// 3. Fetch card info
-	cardRow, err := q.GetCardByID(ctx, int32(input.CardID))
+	cardRow, err := cards.GetCardByID(ctx, int32(input.CardID))
 	if err != nil {
 		return fmt.Errorf("failed to fetch card: %v", err)
 	}
@@ -61,7 +65,7 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 			return fmt.Errorf("failed to activate subscription: %v", err)
 		}
 		// Change card type to 'activation'
-		updateParams := repository_user.UpdateCardParams{
+		updateParams := repository_cards.UpdateCardParams{
 			ID:       cardRow.ID,
 			CardID:   cardRow.CardID,
 			UserID:   cardRow.UserID,
@@ -69,12 +73,12 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 			Type:     "activation",
 			Active:   cardRow.Active,
 		}
-		if err := q.UpdateCard(ctx, updateParams); err != nil {
+		if err := cards.UpdateCard(ctx, updateParams); err != nil {
 			return fmt.Errorf("failed to update card to activation: %v", err)
 		}
 	} else {
 		// Change card type to 'balance'
-		updateParams := repository_user.UpdateCardParams{
+		updateParams := repository_cards.UpdateCardParams{
 			ID:       cardRow.ID,
 			CardID:   cardRow.CardID,
 			UserID:   cardRow.UserID,
@@ -82,13 +86,13 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 			Type:     "balance",
 			Active:   cardRow.Active,
 		}
-		if err := q.UpdateCard(ctx, updateParams); err != nil {
+		if err := cards.UpdateCard(ctx, updateParams); err != nil {
 			return fmt.Errorf("failed to update card to balance: %v", err)
 		}
 	}
 
 	// 5. Log paybox transaction
-	logParams := repository_user.CreatePayboxTransactionParams{
+	logParams := repository_paybox.CreatePayboxTransactionParams{
 		TransactionID: pgtype.Text{String: input.TransactionID, Valid: true},
 		CardID:        int32(input.CardID),
 		Amount:        input.Amount,

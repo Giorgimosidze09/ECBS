@@ -3,7 +3,9 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_balances "database/repository/balances"
+	repository_cards "database/repository/cards"
+	repository_charges "database/repository/charges"
 	"fmt"
 	"shared/common/dto"
 	"time"
@@ -20,7 +22,9 @@ func ValidateCard(input dto.ValidateCardInput) (*dto.ValidateCardOutput, error) 
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_cards.New(tx)
+	charges := repository_charges.New(tx)
+	balances := repository_balances.New(tx)
 
 	// Get card by card_id
 	card, err := q.GetCardByCardID(ctx, int32(input.CardID))
@@ -43,7 +47,7 @@ func ValidateCard(input dto.ValidateCardInput) (*dto.ValidateCardOutput, error) 
 	case "balance":
 		// Existing balance logic
 		// Get balance row for user
-		balanceRow, err := q.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
+		balanceRow, err := balances.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
 		if err != nil {
 			return &dto.ValidateCardOutput{
 				Valid:   false,
@@ -76,7 +80,7 @@ func ValidateCard(input dto.ValidateCardInput) (*dto.ValidateCardOutput, error) 
 		}
 
 		// Deduct ride cost from balance
-		err = q.DeductBalance(ctx, repository_user.DeductBalanceParams{
+		err = balances.DeductBalance(ctx, repository_balances.DeductBalanceParams{
 			UserID:  pgtype.Int4{Int32: card.UserID, Valid: true},
 			Balance: numericRideCost,
 		})
@@ -88,7 +92,7 @@ func ValidateCard(input dto.ValidateCardInput) (*dto.ValidateCardOutput, error) 
 		}
 
 		// Check if balance is now zero and deactivate card if so
-		updatedBalanceRow, err := q.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
+		updatedBalanceRow, err := balances.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
 		if err == nil {
 			var newBalance float64
 			if updatedBalanceRow.Balance.Valid {
@@ -108,7 +112,7 @@ func ValidateCard(input dto.ValidateCardInput) (*dto.ValidateCardOutput, error) 
 		}
 
 		// Insert charge record
-		err = q.InsertCharge(ctx, repository_user.InsertChargeParams{
+		err = charges.InsertCharge(ctx, repository_charges.InsertChargeParams{
 			UserID:      pgtype.Int4{Int32: card.UserID, Valid: true},
 			Amount:      numericRideCost,
 			Description: pgtype.Text{String: "Ride fare deducted", Valid: true},

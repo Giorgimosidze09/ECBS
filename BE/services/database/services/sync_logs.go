@@ -3,7 +3,9 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_balances "database/repository/balances"
+	repository_cards "database/repository/cards"
+	repository_charges "database/repository/charges"
 	"fmt"
 	"shared/common/dto"
 
@@ -19,7 +21,9 @@ func SyncAccessLogs(input dto.SyncAccessLogInput) error {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_cards.New(tx)
+	charges := repository_charges.New(tx)
+	balances := repository_balances.New(tx)
 
 	for _, log := range input.Logs {
 		if !log.Success {
@@ -35,7 +39,7 @@ func SyncAccessLogs(input dto.SyncAccessLogInput) error {
 
 		if card.Type == "balance" {
 			// Deduct ride cost and insert charge
-			balanceRow, err := q.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
+			balanceRow, err := balances.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
 			if err != nil || !balanceRow.RideCost.Valid {
 				continue
 			}
@@ -48,7 +52,7 @@ func SyncAccessLogs(input dto.SyncAccessLogInput) error {
 			}
 
 			// Deduct
-			err = q.DeductBalance(ctx, repository_user.DeductBalanceParams{
+			err = balances.DeductBalance(ctx, repository_balances.DeductBalanceParams{
 				UserID:  pgtype.Int4{Int32: card.UserID, Valid: true},
 				Balance: rideCostNumeric,
 			})
@@ -57,14 +61,14 @@ func SyncAccessLogs(input dto.SyncAccessLogInput) error {
 			}
 
 			// Insert charge
-			_ = q.InsertCharge(ctx, repository_user.InsertChargeParams{
+			_ = charges.InsertCharge(ctx, repository_charges.InsertChargeParams{
 				UserID:      pgtype.Int4{Int32: card.UserID, Valid: true},
 				Amount:      rideCostNumeric,
 				Description: pgtype.Text{String: "Offline ride sync", Valid: true},
 			})
 
 			// Optional: deactivate card if new balance == 0
-			newBalRow, _ := q.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
+			newBalRow, _ := balances.GetBalanceByUserID(ctx, pgtype.Int4{Int32: card.UserID, Valid: true})
 			if newBalRow.Balance.Valid {
 				balF, _ := newBalRow.Balance.Float64Value()
 				if balF.Float64 == 0 {

@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"shared/common/dto"
 
+	repository_balances "database/repository/balances"
+	repository_cards "database/repository/cards"
+	repository_charges "database/repository/charges"
+	repository_devices "database/repository/devices"
 	repository_user "database/repository/users"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -17,8 +21,8 @@ func CreateUserParams(input dto.CreateUsersInput) repository_user.CreateUserPara
 	}
 }
 
-func CreateDeviceParams(input dto.DevicesInput) repository_user.CreateDeviceParams {
-	return repository_user.CreateDeviceParams{
+func CreateDeviceParams(input dto.DevicesInput) repository_devices.CreateDeviceParams {
+	return repository_devices.CreateDeviceParams{
 		DeviceID: input.DeviceID,
 		Location: pgtype.Text{String: input.Location, Valid: true},
 	}
@@ -33,7 +37,7 @@ func ConvertOutput(input repository_user.CreateUserRow) *dto.UserOutput {
 	}
 }
 
-func ConvertDeviceOutput(input repository_user.Device) *dto.DevicesOutput {
+func ConvertDeviceOutput(input repository_devices.Device) *dto.DevicesOutput {
 	return &dto.DevicesOutput{
 		ID:          int(input.ID),
 		DeviceID:    input.DeviceID,
@@ -43,8 +47,8 @@ func ConvertDeviceOutput(input repository_user.Device) *dto.DevicesOutput {
 	}
 }
 
-func CreateCardParams(input dto.AssignCardInput) repository_user.CreateCardParams {
-	return repository_user.CreateCardParams{
+func CreateCardParams(input dto.AssignCardInput) repository_cards.CreateCardParams {
+	return repository_cards.CreateCardParams{
 		CardID:   input.CardID,
 		UserID:   int32(input.UserID),
 		DeviceID: int32(input.DeviceID),
@@ -53,7 +57,7 @@ func CreateCardParams(input dto.AssignCardInput) repository_user.CreateCardParam
 	}
 }
 
-func ConvertCardOutput(input repository_user.CreateCardRow) *dto.CardOutput {
+func ConvertCardOutput(input repository_cards.CreateCardRow) *dto.CardOutput {
 	return &dto.CardOutput{
 		ID:       int(input.ID),
 		UserID:   int(input.UserID),
@@ -63,7 +67,7 @@ func ConvertCardOutput(input repository_user.CreateCardRow) *dto.CardOutput {
 	}
 }
 
-func CreateBalanceParams(input dto.TopUpInput) repository_user.TopUpBalanceParams {
+func CreateBalanceParams(input dto.TopUpInput) repository_balances.TopUpBalanceParams {
 	numeric := pgtype.Numeric{}
 	err := numeric.Scan(fmt.Sprintf("%.2f", input.Balance))
 	if err != nil {
@@ -74,7 +78,7 @@ func CreateBalanceParams(input dto.TopUpInput) repository_user.TopUpBalanceParam
 	if err != nil {
 		panic(fmt.Sprintf("failed to scan ride cost: %v", err))
 	}
-	return repository_user.TopUpBalanceParams{
+	return repository_balances.TopUpBalanceParams{
 		UserID:   pgtype.Int4{Int32: int32(input.UserID), Valid: true},
 		Balance:  numeric,
 		CardID:   int32(input.CardID),
@@ -82,7 +86,7 @@ func CreateBalanceParams(input dto.TopUpInput) repository_user.TopUpBalanceParam
 	}
 }
 
-func ConvertBalanceOutput(input repository_user.TopUpBalanceRow) *dto.BalanceOutput {
+func ConvertBalanceOutput(input repository_balances.TopUpBalanceRow) *dto.BalanceOutput {
 	var balanceFloat float64
 	if input.Balance.Valid {
 		balanceFloatStruct, _ := input.Balance.Float64Value()
@@ -103,22 +107,22 @@ func ConvertUserListInput(input dto.UsersListInput) repository_user.UsersListPar
 	}
 }
 
-func ConvertCardsListInput(input dto.UsersListInput) repository_user.CardsListParams {
-	return repository_user.CardsListParams{
+func ConvertCardsListInput(input dto.UsersListInput) repository_cards.CardsListParams {
+	return repository_cards.CardsListParams{
 		Limit:  int32(input.Limit),
 		Offset: int32(input.Offset),
 	}
 }
 
-func ConvertBalanceListInput(input dto.UsersListInput) repository_user.BalaneListParams {
-	return repository_user.BalaneListParams{
+func ConvertBalanceListInput(input dto.UsersListInput) repository_balances.BalaneListParams {
+	return repository_balances.BalaneListParams{
 		Limit:  int32(input.Limit),
 		Offset: int32(input.Offset),
 	}
 }
 
-func ConvertDevicesListInput(input dto.UsersListInput) repository_user.DeviceListParams {
-	return repository_user.DeviceListParams{
+func ConvertDevicesListInput(input dto.UsersListInput) repository_devices.DeviceListParams {
+	return repository_devices.DeviceListParams{
 		Limit:  int32(input.Limit),
 		Offset: int32(input.Offset),
 	}
@@ -137,7 +141,7 @@ func ConvertUsersListOutput(input repository_user.UsersListRow) *dto.UsersListOu
 	}
 }
 
-func ConvertCardsListOutput(input repository_user.CardsListRow) *dto.CardOutput {
+func ConvertCardsListOutput(input repository_cards.CardsListRow) *dto.CardOutput {
 	return &dto.CardOutput{
 		ID:         int(input.ID),
 		UserID:     int(input.UserID),
@@ -148,7 +152,7 @@ func ConvertCardsListOutput(input repository_user.CardsListRow) *dto.CardOutput 
 	}
 }
 
-func ConvertBalanceListOutput(input repository_user.BalaneListRow) *dto.BalanceOutput {
+func ConvertBalanceListOutput(input repository_balances.BalaneListRow) *dto.BalanceOutput {
 	var balance float64
 	if input.Balance.Valid {
 		if f, err := input.Balance.Float64Value(); err == nil {
@@ -171,7 +175,7 @@ func ConvertBalanceListOutput(input repository_user.BalaneListRow) *dto.BalanceO
 	}
 }
 
-func ConvertDevicesListOutput(input repository_user.DeviceListRow) *dto.DevicesOutput {
+func ConvertDevicesListOutput(input repository_devices.DeviceListRow) *dto.DevicesOutput {
 	return &dto.DevicesOutput{
 		ID:          int(input.ID),
 		DeviceID:    input.DeviceID,
@@ -181,13 +185,13 @@ func ConvertDevicesListOutput(input repository_user.DeviceListRow) *dto.DevicesO
 	}
 }
 
-func ConvertChargesListInput(input dto.UsersListInput) repository_user.ChargesListParams {
-	return repository_user.ChargesListParams{
+func ConvertChargesListInput(input dto.UsersListInput) repository_charges.ChargesListParams {
+	return repository_charges.ChargesListParams{
 		Limit:  int32(input.Limit),
 		Offset: int32(input.Offset),
 	}
 }
-func ConvertCharges(input repository_user.ChargesListRow) *dto.Charges {
+func ConvertCharges(input repository_charges.ChargesListRow) *dto.Charges {
 	var amount float64
 	if input.Amount.Valid {
 		f, _ := input.Amount.Float64Value()
@@ -207,15 +211,15 @@ func ConvertCharges(input repository_user.ChargesListRow) *dto.Charges {
 	}
 }
 
-func CreateCardActivationParams(input dto.CardActivation) repository_user.CreateCardActivationParams {
-	return repository_user.CreateCardActivationParams{
+func CreateCardActivationParams(input dto.CardActivation) repository_cards.CreateCardActivationParams {
+	return repository_cards.CreateCardActivationParams{
 		CardID:          int32(input.CardID),
 		ActivationStart: pgtype.Date{Time: input.ActivationStart, Valid: true},
 		ActivationEnd:   pgtype.Date{Time: input.ActivationEnd, Valid: true},
 	}
 }
 
-func ConvertCardActivationOutput(input repository_user.CardActivation) *dto.CardActivation {
+func ConvertCardActivationOutput(input repository_cards.CardActivation) *dto.CardActivation {
 	return &dto.CardActivation{
 		ID:              int(input.ID),
 		CardID:          int(input.CardID),
@@ -224,10 +228,10 @@ func ConvertCardActivationOutput(input repository_user.CardActivation) *dto.Card
 	}
 }
 
-func AddBalanceToCardParams(input dto.PayboxTopupRequest) repository_user.AddBalanceToCardParams {
+func AddBalanceToCardParams(input dto.PayboxTopupRequest) repository_balances.AddBalanceToCardParams {
 	numericAmount := pgtype.Numeric{}
 	_ = numericAmount.Scan(input.Amount)
-	return repository_user.AddBalanceToCardParams{
+	return repository_balances.AddBalanceToCardParams{
 		CardID:  int32(input.CardID),
 		Balance: numericAmount,
 	}

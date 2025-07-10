@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	database "database/db"
-	repository_user "database/repository/users"
+	repository_charges "database/repository/charges"
 	"fmt"
 	"log"
 	"shared/common/dto"
@@ -18,7 +18,7 @@ func ChargesList(input dto.UsersListInput) ([]*dto.Charges, error) {
 	}
 	defer tx.Rollback(ctx)
 
-	q := repository_user.New(tx)
+	q := repository_charges.New(tx)
 
 	pramas := ConvertChargesListInput(input)
 	total, err := q.ChargesList(context.Background(), pramas)

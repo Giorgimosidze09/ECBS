@@ -3,34 +3,3 @@
 //   sqlc v1.28.0
 
 package repository_users
-
-import (
-	"github.com/jackc/pgx/v5/pgtype"
-)
-
-type AuthUser struct {
-	ID           int32            `json:"id"`
-	Username     string           `json:"username"`
-	PasswordHash string           `json:"password_hash"`
-	Role         string           `json:"role"`
-	DeviceID     pgtype.Text      `json:"device_id"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
-}
-
-type CardActivation struct {
-	ID              int32            `json:"id"`
-	CardID          int32            `json:"card_id"`
-	ActivationStart pgtype.Date      `json:"activation_start"`
-	ActivationEnd   pgtype.Date      `json:"activation_end"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
-	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
-}
-
-type Device struct {
-	ID          int32              `json:"id"`
-	DeviceID    string             `json:"device_id"`
-	Location    pgtype.Text        `json:"location"`
-	InstalledAt pgtype.Timestamptz `json:"installed_at"`
-	Active      pgtype.Bool        `json:"active"`
-}
