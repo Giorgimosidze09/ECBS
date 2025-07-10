@@ -216,3 +216,11 @@ UPDATE balances
 SET balance = balance + $2, updated_at = NOW()
 WHERE card_id = $1
 RETURNING user_id, card_id, balance, updated_at;
+
+
+
+-- name: GetCardByItsCardID :one
+SELECT c.id, c.card_id, c.user_id, c.active, c.type, u.name as user_name
+FROM cards c
+JOIN users u ON u.id = c.user_id
+WHERE c.card_id = $1;

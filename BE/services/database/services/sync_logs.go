@@ -27,13 +27,8 @@ func SyncAccessLogs(input dto.SyncAccessLogInput) error {
 		}
 
 		// Convert log.CardID (string) to int32 for GetCardByCardID
-		var cardID int32
-		_, err := fmt.Sscanf(log.CardID, "%d", &cardID)
-		if err != nil {
-			continue
-		}
 
-		card, err := q.GetCardByCardID(ctx, cardID)
+		card, err := q.GetCardByItsCardID(ctx, log.CardID)
 		if err != nil || !card.Active.Bool {
 			continue
 		}

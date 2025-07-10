@@ -682,6 +682,36 @@ func (q *Queries) GetCardByID(ctx context.Context, id int32) (GetCardByIDRow, er
 	return i, err
 }
 
+const getCardByItsCardID = `-- name: GetCardByItsCardID :one
+SELECT c.id, c.card_id, c.user_id, c.active, c.type, u.name as user_name
+FROM cards c
+JOIN users u ON u.id = c.user_id
+WHERE c.card_id = $1
+`
+
+type GetCardByItsCardIDRow struct {
+	ID       int32       `json:"id"`
+	CardID   string      `json:"card_id"`
+	UserID   int32       `json:"user_id"`
+	Active   pgtype.Bool `json:"active"`
+	Type     string      `json:"type"`
+	UserName string      `json:"user_name"`
+}
+
+func (q *Queries) GetCardByItsCardID(ctx context.Context, cardID string) (GetCardByItsCardIDRow, error) {
+	row := q.db.QueryRow(ctx, getCardByItsCardID, cardID)
+	var i GetCardByItsCardIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.CardID,
+		&i.UserID,
+		&i.Active,
+		&i.Type,
+		&i.UserName,
+	)
+	return i, err
+}
+
 const getDeviceByID = `-- name: GetDeviceByID :one
 SELECT id, device_id, location, installed_at, active FROM devices WHERE id = $1
 `
