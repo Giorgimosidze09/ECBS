@@ -44,6 +44,9 @@ func main() {
 	subscriber.RegisterSyncListener("devices", handlers.CreateDevices)
 
 	subscriber.RegisterSyncListener("validate", handlers.ValidateCard)
+	subscriber.RegisterSyncListener("validate", handlers.Authorization)
+	subscriber.RegisterSyncListener("access_logs", handlers.SyncAccessLogs)
+
 	subscriber.RegisterSyncListener("count_users", handlers.CountUsers)
 	subscriber.RegisterSyncListener("count_cards", handlers.CountCards)
 	subscriber.RegisterSyncListener("total_balance", handlers.TotalBalance)

@@ -75,6 +75,34 @@ func (c DatabaseClient) ValidateCard(input dto.ValidateCardInput) (*dto.Validate
 	return utils.Decode[*dto.ValidateCardOutput](response.Data)
 }
 
+func (c DatabaseClient) SyncAuthorizedAccess(input dto.AuthorizedInput) ([]dto.AuthorizedAccessSyncDTO, error) {
+	data, err := utils.Encode(input)
+	if err != nil {
+		return nil, err
+	}
+
+	response := c.Publisher.Request("authorized", data)
+	if response.Error != nil {
+		return nil, response.Error
+	}
+
+	return utils.Decode[[]dto.AuthorizedAccessSyncDTO](response.Data)
+}
+
+func (c DatabaseClient) SyncAccessLogs(input dto.SyncAccessLogInput) error {
+	data, err := utils.Encode(input)
+	if err != nil {
+		return err
+	}
+
+	response := c.Publisher.Request("access_logs", data) // more specific subject
+	if response.Error != nil {
+		return response.Error
+	}
+
+	return nil
+}
+
 func (c DatabaseClient) CountUsers() (*dto.CountOutput, error) {
 
 	response := c.Publisher.Request("count_users", nil)

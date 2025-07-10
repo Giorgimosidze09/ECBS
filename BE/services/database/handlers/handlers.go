@@ -78,6 +78,34 @@ var ValidateCard subscribe_manager.Handler = func(data []byte) ([]byte, error) {
 	return utils.Encode(created)
 }
 
+var Authorization subscribe_manager.Handler = func(data []byte) ([]byte, error) {
+	input, err := utils.Decode[dto.AuthorizedInput](data)
+	if err != nil {
+		return nil, err
+	}
+
+	created, err := service.Authorization(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.Encode(created)
+}
+
+var SyncAccessLogs subscribe_manager.Handler = func(data []byte) ([]byte, error) {
+	input, err := utils.Decode[dto.SyncAccessLogInput](data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.SyncAccessLogs(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 var CountUsers subscribe_manager.Handler = func(data []byte) ([]byte, error) {
 	counted, err := service.CountUsers()
 	if err != nil {

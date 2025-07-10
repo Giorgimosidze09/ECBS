@@ -52,6 +52,8 @@ func main() {
 	// webhook validation
 	r.Post("/cards/validate", handlers.ValidateCardHandler)
 	r.Post("/webhook/card-scan", handlers.HandleCardScanWebhook)
+	r.Get("/devices/{device_id}/authorized-access", handlers.SyncAuthorizedAccessHandler)
+	r.Post("/access-logs/sync", handlers.SyncAccessLogs)
 
 	r.Post("/cards/activate", handlers.AddCardActivationHandler)
 

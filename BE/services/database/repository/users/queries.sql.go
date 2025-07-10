@@ -400,6 +400,73 @@ func (q *Queries) DeviceList(ctx context.Context, arg DeviceListParams) ([]Devic
 	return items, nil
 }
 
+const getAuthorizedAccessByDeviceUniqueID = `-- name: GetAuthorizedAccessByDeviceUniqueID :many
+SELECT
+    c.card_id,
+    u.id AS user_id,
+    u.name AS user_name,
+    c.type,
+    c.active,
+    b.balance,
+    b.ride_cost,
+    a.activation_start,
+    a.activation_end
+FROM cards c
+JOIN users u ON u.id = c.user_id
+LEFT JOIN balances b ON b.card_id = c.id
+LEFT JOIN LATERAL (
+    SELECT activation_start, activation_end
+    FROM card_activations
+    WHERE card_id = c.id
+    ORDER BY activation_end DESC
+    LIMIT 1
+) a ON TRUE
+JOIN devices d ON d.id = c.device_id
+WHERE d.device_id = $1 AND c.deleted = FALSE
+`
+
+type GetAuthorizedAccessByDeviceUniqueIDRow struct {
+	CardID          string         `json:"card_id"`
+	UserID          int32          `json:"user_id"`
+	UserName        string         `json:"user_name"`
+	Type            string         `json:"type"`
+	Active          pgtype.Bool    `json:"active"`
+	Balance         pgtype.Numeric `json:"balance"`
+	RideCost        pgtype.Numeric `json:"ride_cost"`
+	ActivationStart pgtype.Date    `json:"activation_start"`
+	ActivationEnd   pgtype.Date    `json:"activation_end"`
+}
+
+func (q *Queries) GetAuthorizedAccessByDeviceUniqueID(ctx context.Context, deviceID string) ([]GetAuthorizedAccessByDeviceUniqueIDRow, error) {
+	rows, err := q.db.Query(ctx, getAuthorizedAccessByDeviceUniqueID, deviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAuthorizedAccessByDeviceUniqueIDRow
+	for rows.Next() {
+		var i GetAuthorizedAccessByDeviceUniqueIDRow
+		if err := rows.Scan(
+			&i.CardID,
+			&i.UserID,
+			&i.UserName,
+			&i.Type,
+			&i.Active,
+			&i.Balance,
+			&i.RideCost,
+			&i.ActivationStart,
+			&i.ActivationEnd,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getBalanceByUserID = `-- name: GetBalanceByUserID :one
 SELECT user_id, balance, ride_cost, updated_at
 FROM balances
