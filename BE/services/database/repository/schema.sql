@@ -12,6 +12,15 @@ CREATE TABLE users (
     deleted BOOLEAN DEFAULT FALSE
 );
 
+
+CREATE TABLE devices (
+    id SERIAL PRIMARY KEY,
+    device_id varchar(255) UNIQUE NOT NULL,
+    location VARCHAR(255),
+    installed_at TIMESTAMPTZ DEFAULT now(),
+    active BOOLEAN DEFAULT TRUE
+);
+
 CREATE TABLE cards (
     id SERIAL PRIMARY KEY,
     card_id VARCHAR(100) UNIQUE NOT NULL,
@@ -51,13 +60,6 @@ CREATE TABLE charges (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE devices (
-    id SERIAL PRIMARY KEY,
-    device_id varchar(255) UNIQUE NOT NULL,
-    location VARCHAR(255),
-    installed_at TIMESTAMPTZ DEFAULT now(),
-    active BOOLEAN DEFAULT TRUE
-);
 
 CREATE TABLE IF NOT EXISTS card_activations (
     id SERIAL PRIMARY KEY,

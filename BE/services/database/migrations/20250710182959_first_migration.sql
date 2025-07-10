@@ -1,12 +1,26 @@
 -- Create "devices" table
 CREATE TABLE "public"."devices" (
   "id" serial NOT NULL,
-  "device_id" character varying(100) NOT NULL,
+  "device_id" character varying(255) NOT NULL,
   "location" character varying(255) NULL,
   "installed_at" timestamptz NULL DEFAULT now(),
   "active" boolean NULL DEFAULT true,
   PRIMARY KEY ("id"),
   CONSTRAINT "devices_device_id_key" UNIQUE ("device_id")
+);
+-- Create "auth_users" table
+CREATE TABLE "public"."auth_users" (
+  "id" serial NOT NULL,
+  "username" character varying(255) NOT NULL,
+  "password_hash" character varying(255) NOT NULL,
+  "role" character varying(20) NOT NULL,
+  "device_id" character varying(255) NULL,
+  "created_at" timestamp NULL DEFAULT now(),
+  "updated_at" timestamp NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  CONSTRAINT "auth_users_username_key" UNIQUE ("username"),
+  CONSTRAINT "auth_users_device_id_fkey" FOREIGN KEY ("device_id") REFERENCES "public"."devices" ("device_id") ON UPDATE NO ACTION ON DELETE CASCADE,
+  CONSTRAINT "auth_users_role_check" CHECK ((role)::text = ANY ((ARRAY['admin'::character varying, 'customer'::character varying])::text[]))
 );
 -- Create "users" table
 CREATE TABLE "public"."users" (
@@ -16,6 +30,8 @@ CREATE TABLE "public"."users" (
   "phone" character varying(50) NULL,
   "created_at" timestamptz NULL DEFAULT now(),
   "updated_at" timestamptz NULL,
+  "pin_code" character varying(20) NULL,
+  "deleted" boolean NULL DEFAULT false,
   PRIMARY KEY ("id"),
   CONSTRAINT "users_email_key" UNIQUE ("email")
 );
@@ -24,10 +40,14 @@ CREATE TABLE "public"."cards" (
   "id" serial NOT NULL,
   "card_id" character varying(100) NOT NULL,
   "user_id" integer NOT NULL,
+  "device_id" integer NOT NULL,
   "active" boolean NULL DEFAULT true,
+  "type" character varying(32) NOT NULL DEFAULT 'balance',
   "assigned_at" timestamptz NULL DEFAULT now(),
+  "deleted" boolean NULL DEFAULT false,
   PRIMARY KEY ("id"),
   CONSTRAINT "cards_card_id_key" UNIQUE ("card_id"),
+  CONSTRAINT "cards_device_id_fkey" FOREIGN KEY ("device_id") REFERENCES "public"."devices" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   CONSTRAINT "cards_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
 );
 -- Create index "idx_cards_card_id" to table: "cards"
@@ -45,6 +65,17 @@ CREATE TABLE "public"."balances" (
   CONSTRAINT "unique_user_card" UNIQUE ("user_id", "card_id"),
   CONSTRAINT "balances_card_id_fkey" FOREIGN KEY ("card_id") REFERENCES "public"."cards" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT "balances_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+);
+-- Create "card_activations" table
+CREATE TABLE "public"."card_activations" (
+  "id" serial NOT NULL,
+  "card_id" integer NOT NULL,
+  "activation_start" date NOT NULL,
+  "activation_end" date NOT NULL,
+  "created_at" timestamp NULL DEFAULT now(),
+  "updated_at" timestamp NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  CONSTRAINT "card_activations_card_id_fkey" FOREIGN KEY ("card_id") REFERENCES "public"."cards" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
 );
 -- Create "charges" table
 CREATE TABLE "public"."charges" (
@@ -74,13 +105,3 @@ CREATE TABLE "public"."trips" (
 );
 -- Create index "idx_trips_user_id" to table: "trips"
 CREATE INDEX "idx_trips_user_id" ON "public"."trips" ("user_id");
-
--- AUTH USERS TABLE FOR AUTHENTICATION
-CREATE TABLE IF NOT EXISTS auth_users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'customer')),
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
