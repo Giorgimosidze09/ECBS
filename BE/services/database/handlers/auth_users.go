@@ -4,7 +4,7 @@ import (
 	"context"
 	database "database/db"
 	repository_auth_users "database/repository/auth_users"
-	service "database/services"
+	service "database/services/auth_service"
 	"shared/common/dto"
 	"shared/common/utils"
 	subscribe_manager "shared/nats_client/subscribe-manager"

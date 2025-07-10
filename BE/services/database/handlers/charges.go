@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	service "database/services"
+	service "database/services/charges"
 	"shared/common/dto"
 	"shared/common/utils"
 	subscribe_manager "shared/nats_client/subscribe-manager"

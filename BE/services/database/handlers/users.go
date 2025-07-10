@@ -1,7 +1,9 @@
 package handlers
 
 import (
-	service "database/services"
+	admin "database/services/admin"
+	balances "database/services/balances"
+	service "database/services/users"
 	"shared/common/dto"
 	"shared/common/utils"
 	subscribe_manager "shared/nats_client/subscribe-manager"
@@ -72,7 +74,7 @@ var SumBalance subscribe_manager.Handler = func(data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	created, err := service.SumBalance(input)
+	created, err := balances.SumBalance(input)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +82,7 @@ var SumBalance subscribe_manager.Handler = func(data []byte) ([]byte, error) {
 }
 
 var CountUsers subscribe_manager.Handler = func(data []byte) ([]byte, error) {
-	counted, err := service.CountUsers()
+	counted, err := admin.CountUsers()
 	if err != nil {
 		return nil, err
 	}

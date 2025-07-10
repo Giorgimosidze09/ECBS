@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	service "database/services"
+	admin "database/services/admin"
+	service "database/services/balances"
 	"shared/common/dto"
 	"shared/common/utils"
 	subscribe_manager "shared/nats_client/subscribe-manager"
@@ -56,7 +57,7 @@ var AddBalanceToCard subscribe_manager.Handler = func(data []byte) ([]byte, erro
 }
 
 var TotalBalance subscribe_manager.Handler = func(data []byte) ([]byte, error) {
-	totalBalance, err := service.TotalBalance()
+	totalBalance, err := admin.TotalBalance()
 	if err != nil {
 		return nil, err
 	}

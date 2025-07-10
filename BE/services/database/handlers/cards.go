@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	service "database/services"
+	admin "database/services/admin"
+	service "database/services/cards"
 	"shared/common/dto"
 	"shared/common/utils"
 	subscribe_manager "shared/nats_client/subscribe-manager"
@@ -92,7 +93,7 @@ var GetCardByID subscribe_manager.Handler = func(data []byte) ([]byte, error) {
 }
 
 var CountCards subscribe_manager.Handler = func(data []byte) ([]byte, error) {
-	counted, err := service.CountCards()
+	counted, err := admin.CountCards()
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	repository_balances "database/repository/balances"
 	repository_cards "database/repository/cards"
 	repository_paybox "database/repository/paybox"
+	cardsActivation "database/services/cards"
 	"fmt"
 	"log"
 	"shared/common/dto"
@@ -60,7 +61,7 @@ func AddBalanceToCard(input dto.PayboxTopupRequest) error {
 			ActivationStart: activationStart,
 			ActivationEnd:   activationEnd,
 		}
-		_, err := AddCardActivation(activation)
+		_, err := cardsActivation.AddCardActivation(activation)
 		if err != nil {
 			return fmt.Errorf("failed to activate subscription: %v", err)
 		}
