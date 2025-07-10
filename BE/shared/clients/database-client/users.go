@@ -19,6 +19,20 @@ func (c DatabaseClient) CreateUser(input dto.CreateUsersInput) (*dto.UserOutput,
 	return utils.Decode[*dto.UserOutput](response.Data)
 }
 
+func (c DatabaseClient) SumBalance(input dto.CustomerSumBalanceRequest) (*dto.CustomerSumBalanceResponse, error) {
+	data, err := utils.Encode(input)
+	if err != nil {
+		return nil, err
+	}
+
+	response := c.Publisher.Request("sum_balance", data)
+	if response.Error != nil {
+		return nil, response.Error
+	}
+
+	return utils.Decode[*dto.CustomerSumBalanceResponse](response.Data)
+}
+
 func (c DatabaseClient) CreateCard(input dto.AssignCardInput) (*dto.CardOutput, error) {
 	data, err := utils.Encode(input)
 	if err != nil {
@@ -326,4 +340,40 @@ func (c DatabaseClient) GetDeviceByID(deviceID int) (*dto.DeviceOutput, error) {
 		return nil, response.Error
 	}
 	return utils.Decode[*dto.DeviceOutput](response.Data)
+}
+
+func (c DatabaseClient) RegisterAuthUser(input dto.RegisterRequest) (*dto.RegisterResponse, error) {
+	data, err := utils.Encode(input)
+	if err != nil {
+		return nil, err
+	}
+	response := c.Publisher.Request("auth_users.create", data)
+	if response.Error != nil {
+		return nil, response.Error
+	}
+	return utils.Decode[*dto.RegisterResponse](response.Data)
+}
+
+func (c DatabaseClient) LoginAuthUserHandler(input dto.LoginRequest) (*struct {
+	ID           int32  `json:"id"`
+	Username     string `json:"username"`
+	PasswordHash string `json:"password_hash"`
+	Role         string `json:"role"`
+	DeviceID     string `json:"device_id"`
+}, error) {
+	data, err := utils.Encode(input)
+	if err != nil {
+		return nil, err
+	}
+	response := c.Publisher.Request("auth_users.get_by_username", data)
+	if response.Error != nil {
+		return nil, response.Error
+	}
+	return utils.Decode[*struct {
+		ID           int32  `json:"id"`
+		Username     string `json:"username"`
+		PasswordHash string `json:"password_hash"`
+		Role         string `json:"role"`
+		DeviceID     string `json:"device_id"`
+	}](response.Data)
 }

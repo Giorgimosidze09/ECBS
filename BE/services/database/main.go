@@ -42,6 +42,7 @@ func main() {
 	subscriber.RegisterSyncListener("create_card", handlers.CreateCard)
 	subscriber.RegisterSyncListener("top_up", handlers.TopUpBalance)
 	subscriber.RegisterSyncListener("devices", handlers.CreateDevices)
+	subscriber.RegisterSyncListener("sum_balance", handlers.SumBalance)
 
 	subscriber.RegisterSyncListener("validate", handlers.ValidateCard)
 	subscriber.RegisterSyncListener("validate", handlers.Authorization)
@@ -70,6 +71,9 @@ func main() {
 	subscriber.RegisterSyncListener("update_device", handlers.UpdateDevice)
 	subscriber.RegisterSyncListener("delete_device", handlers.SoftDeleteDevice)
 	subscriber.RegisterSyncListener("get_device_by_id", handlers.GetDeviceByID)
+
+	subscriber.RegisterSyncListener("auth_users.create", handlers.RegisterAuthUser)
+	subscriber.RegisterSyncListener("auth_users.get_by_username", handlers.LoginAuthUserHandler)
 
 	fmt.Println("Database service ready")
 

@@ -211,6 +211,43 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const createAuthUser = `-- name: CreateAuthUser :one
+
+INSERT INTO auth_users (username, password_hash, role)
+VALUES ($1, $2, $3)
+RETURNING id, username, password_hash, role, created_at, updated_at
+`
+
+type CreateAuthUserParams struct {
+	Username     string `json:"username"`
+	PasswordHash string `json:"password_hash"`
+	Role         string `json:"role"`
+}
+
+type CreateAuthUserRow struct {
+	ID           int32            `json:"id"`
+	Username     string           `json:"username"`
+	PasswordHash string           `json:"password_hash"`
+	Role         string           `json:"role"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
+
+// AUTH USERS QUERIES
+func (q *Queries) CreateAuthUser(ctx context.Context, arg CreateAuthUserParams) (CreateAuthUserRow, error) {
+	row := q.db.QueryRow(ctx, createAuthUser, arg.Username, arg.PasswordHash, arg.Role)
+	var i CreateAuthUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.PasswordHash,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const createCard = `-- name: CreateCard :one
 INSERT INTO Cards (card_id, user_id, device_id, active, type, assigned_at)
 VALUES ($1, $2, $3, $4, $5, NOW())
@@ -400,6 +437,56 @@ func (q *Queries) DeviceList(ctx context.Context, arg DeviceListParams) ([]Devic
 	return items, nil
 }
 
+const getAuthUserByID = `-- name: GetAuthUserByID :one
+SELECT id, username, password_hash, role, created_at, updated_at
+FROM auth_users
+WHERE id = $1
+`
+
+type GetAuthUserByIDRow struct {
+	ID           int32            `json:"id"`
+	Username     string           `json:"username"`
+	PasswordHash string           `json:"password_hash"`
+	Role         string           `json:"role"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
+
+func (q *Queries) GetAuthUserByID(ctx context.Context, id int32) (GetAuthUserByIDRow, error) {
+	row := q.db.QueryRow(ctx, getAuthUserByID, id)
+	var i GetAuthUserByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.PasswordHash,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getAuthUserByUsername = `-- name: GetAuthUserByUsername :one
+SELECT id, username, password_hash, role, device_id, created_at, updated_at
+FROM auth_users
+WHERE username = $1
+`
+
+func (q *Queries) GetAuthUserByUsername(ctx context.Context, username string) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getAuthUserByUsername, username)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.PasswordHash,
+		&i.Role,
+		&i.DeviceID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getAuthorizedAccessByDeviceUniqueID = `-- name: GetAuthorizedAccessByDeviceUniqueID :many
 SELECT
     c.card_id,
@@ -568,6 +655,21 @@ func (q *Queries) GetDeviceByID(ctx context.Context, id int32) (Device, error) {
 	return i, err
 }
 
+const getSumBalanceByDeviceID = `-- name: GetSumBalanceByDeviceID :one
+SELECT COALESCE(SUM(b.balance), 0) AS total_balance
+FROM balances b
+JOIN cards c ON b.card_id = c.id
+JOIN devices d ON c.device_id = d.id
+WHERE d.device_id = $1
+`
+
+func (q *Queries) GetSumBalanceByDeviceID(ctx context.Context, deviceID string) (interface{}, error) {
+	row := q.db.QueryRow(ctx, getSumBalanceByDeviceID, deviceID)
+	var total_balance interface{}
+	err := row.Scan(&total_balance)
+	return total_balance, err
+}
+
 const getUserByID = `-- name: GetUserByID :one
 SELECT id, name, email, phone, deleted FROM users WHERE id = $1
 `
@@ -606,6 +708,48 @@ type InsertChargeParams struct {
 func (q *Queries) InsertCharge(ctx context.Context, arg InsertChargeParams) error {
 	_, err := q.db.Exec(ctx, insertCharge, arg.UserID, arg.Amount, arg.Description)
 	return err
+}
+
+const listAuthUsers = `-- name: ListAuthUsers :many
+SELECT id, username, password_hash, role, created_at, updated_at
+FROM auth_users
+ORDER BY id
+`
+
+type ListAuthUsersRow struct {
+	ID           int32            `json:"id"`
+	Username     string           `json:"username"`
+	PasswordHash string           `json:"password_hash"`
+	Role         string           `json:"role"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
+
+func (q *Queries) ListAuthUsers(ctx context.Context) ([]ListAuthUsersRow, error) {
+	rows, err := q.db.Query(ctx, listAuthUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAuthUsersRow
+	for rows.Next() {
+		var i ListAuthUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.PasswordHash,
+			&i.Role,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const softDeleteCard = `-- name: SoftDeleteCard :exec

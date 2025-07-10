@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"context"
 	"shared/common/dto"
 	"shared/common/utils"
 	subscribe_manager "shared/nats_client/subscribe-manager"
 
+	database "database/db"
+	repository_users "database/repository/users"
 	service "database/services"
 )
 
@@ -57,6 +60,20 @@ var CreateDevices subscribe_manager.Handler = func(data []byte) ([]byte, error) 
 	}
 
 	created, err := service.CreateDevices(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.Encode(created)
+}
+
+var SumBalance subscribe_manager.Handler = func(data []byte) ([]byte, error) {
+	input, err := utils.Decode[dto.CustomerSumBalanceRequest](data)
+	if err != nil {
+		return nil, err
+	}
+
+	created, err := service.SumBalance(input)
 	if err != nil {
 		return nil, err
 	}
@@ -337,4 +354,32 @@ var GetDeviceByID subscribe_manager.Handler = func(data []byte) ([]byte, error) 
 		return nil, err
 	}
 	return utils.Encode(device)
+}
+
+var RegisterAuthUser subscribe_manager.Handler = func(data []byte) ([]byte, error) {
+	input, err := utils.Decode[dto.RegisterRequest](data)
+	if err != nil {
+		return nil, err
+	}
+	ctx := context.Background()
+	q := repository_users.New(database.DB)
+	created, err := service.CreateAuthUser(ctx, q, input.Username, input.Password, input.Role)
+	if err != nil {
+		return nil, err
+	}
+	return utils.Encode(created)
+}
+
+var LoginAuthUserHandler subscribe_manager.Handler = func(data []byte) ([]byte, error) {
+	input, err := utils.Decode[dto.LoginRequest](data)
+	if err != nil {
+		return nil, err
+	}
+	ctx := context.Background()
+	q := repository_users.New(database.DB)
+	user, err := service.GetAuthUserByUsername(ctx, q, input.Username)
+	if err != nil {
+		return nil, err
+	}
+	return utils.Encode(user)
 }

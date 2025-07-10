@@ -35,42 +35,52 @@ func main() {
 	}))
 
 	// Admin
-	r.Post("/users", handlers.CreateUserHandler)
-	r.Post("/users/list", handlers.GetUserList)
-	r.Post("/cards/assign", handlers.AssignCardHandler)
-	r.Post("/balances/topup", handlers.TopUpBalanceHandler)
-	r.Get("/stats/users", handlers.GetUserStatsHandler)
-	r.Get("/stats/cards", handlers.GetCardStatsHandler)
-	r.Get("/stats/total-balance", handlers.GetTotalBalanceHandler)
-	r.Post("/cards/list", handlers.GetCardsList)
-	r.Post("/charges/list", handlers.GetCharges)
-	r.Post("/balances/ride-cost", handlers.ChangeRideCost)
-	r.Post("/balances/list", handlers.BalanceList)
-	r.Post("/devices", handlers.CreateDevices)
-	r.Post("/devices/list", handlers.DevicesList)
+	r.Group(func(admin chi.Router) {
+		admin.Use(handlers.JWTAuthMiddleware)
+		admin.Use(handlers.AdminOnly)
+		admin.Post("/users", handlers.CreateUserHandler)
+		admin.Post("/users/list", handlers.GetUserList)
+		admin.Post("/cards/assign", handlers.AssignCardHandler)
+		admin.Post("/balances/topup", handlers.TopUpBalanceHandler)
+		admin.Get("/stats/users", handlers.GetUserStatsHandler)
+		admin.Get("/stats/cards", handlers.GetCardStatsHandler)
+		admin.Get("/stats/total-balance", handlers.GetTotalBalanceHandler)
+		admin.Post("/cards/list", handlers.GetCardsList)
+		admin.Post("/charges/list", handlers.GetCharges)
+		admin.Post("/balances/ride-cost", handlers.ChangeRideCost)
+		admin.Post("/balances/list", handlers.BalanceList)
+		admin.Post("/devices", handlers.CreateDevices)
+		admin.Post("/devices/list", handlers.DevicesList)
+		admin.Post("/cards/activate", handlers.AddCardActivationHandler)
+		// RESTful user endpoints
+		admin.Get("/users/{id}", handlers.GetUserByIDHandler)
+		admin.Put("/users/{id}", handlers.UpdateUserHandler)
+		admin.Delete("/users/{id}", handlers.SoftDeleteUserHandler)
+		// RESTful card endpoints
+		admin.Get("/cards/{id}", handlers.GetCardByIDHandler)
+		admin.Put("/cards/{id}", handlers.UpdateCardHandler)
+		admin.Delete("/cards/{id}", handlers.SoftDeleteCardHandler)
+		// RESTful device endpoints
+		admin.Get("/devices/{id}", handlers.GetDeviceByIDHandler)
+		admin.Put("/devices/{id}", handlers.UpdateDeviceHandler)
+		admin.Delete("/devices/{id}", handlers.SoftDeleteDeviceHandler)
+	})
 
-	// webhook validation
+	// Public endpoints
+	r.Post("/auth/register", handlers.RegisterAuthUserHandler)
+	r.Post("/auth/login", handlers.LoginAuthUserHandler)
+
+	// Webhook and validation endpoints (if you want to restrict, move to admin group)
 	r.Post("/cards/validate", handlers.ValidateCardHandler)
 	r.Post("/webhook/card-scan", handlers.HandleCardScanWebhook)
 	r.Get("/devices/{device_id}/authorized-access", handlers.SyncAuthorizedAccessHandler)
 	r.Post("/access-logs/sync", handlers.SyncAccessLogs)
 
-	r.Post("/cards/activate", handlers.AddCardActivationHandler)
-
-	// RESTful user endpoints
-	r.Get("/users/{id}", handlers.GetUserByIDHandler)
-	r.Put("/users/{id}", handlers.UpdateUserHandler)
-	r.Delete("/users/{id}", handlers.SoftDeleteUserHandler)
-
-	// RESTful card endpoints
-	r.Get("/cards/{id}", handlers.GetCardByIDHandler)
-	r.Put("/cards/{id}", handlers.UpdateCardHandler)
-	r.Delete("/cards/{id}", handlers.SoftDeleteCardHandler)
-
-	// RESTful device endpoints
-	r.Get("/devices/{id}", handlers.GetDeviceByIDHandler)
-	r.Put("/devices/{id}", handlers.UpdateDeviceHandler)
-	r.Delete("/devices/{id}", handlers.SoftDeleteDeviceHandler)
+	r.Group(func(customer chi.Router) {
+		customer.Use(handlers.JWTAuthMiddleware)
+		customer.Use(handlers.CustomerOnly) // You’ll need to add this middleware, similar to AdminOnly
+		customer.Post("/customer/sum-balance", handlers.CustomerSumBalanceHandler)
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {

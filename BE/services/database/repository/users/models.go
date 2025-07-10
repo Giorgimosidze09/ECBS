@@ -8,6 +8,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AuthUser struct {
+	ID           int32            `json:"id"`
+	Username     string           `json:"username"`
+	PasswordHash string           `json:"password_hash"`
+	Role         string           `json:"role"`
+	DeviceID     pgtype.Text      `json:"device_id"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
+
 type CardActivation struct {
 	ID              int32            `json:"id"`
 	CardID          int32            `json:"card_id"`

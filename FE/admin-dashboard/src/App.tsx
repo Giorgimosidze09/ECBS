@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Route, Switch, NavLink, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, NavLink, useLocation, Redirect, useHistory } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import CardsPage from './pages/CardsPage';
@@ -13,6 +13,8 @@ import DevicesListPage from './pages/DevicesListPage';
 import DevicesListVisualPage from './pages/DevicesListVisualPage';
 import BalancesListPage from './pages/BalancesListPage';
 import ChargesListPage from './pages/ChargesListPage';
+import CustomerPage from './pages/CustomerPage';
+import { AuthProvider, useAuth } from './auth';
 
 const linkStyle: React.CSSProperties = {
   color: '#fff',
@@ -29,8 +31,25 @@ const activeLinkStyle: React.CSSProperties = {
   transform: 'scale(1.04)',
 };
 
+// PrivateRoute: only for authenticated users
+const PrivateRoute: React.FC<any> = ({ children, ...rest }) => {
+  const { token } = useAuth();
+  return <Route {...rest} render={() => (token ? children : <Redirect to="/login" />)} />;
+};
+
+// RoleRoute: only for users with a specific role
+const RoleRoute: React.FC<any> = ({ role: requiredRole, children, ...rest }) => {
+  const { token, role } = useAuth();
+  return <Route {...rest} render={() => (token && role === requiredRole ? children : <Redirect to="/login" />)} />;
+};
+
+const LoginPage = React.lazy(() => import('./pages/LoginPage'));
+const RegisterPage = React.lazy(() => import('./pages/RegisterPage'));
+
 function Layout() {
   const location = useLocation();
+  const { token, role, logout } = useAuth();
+  const history = useHistory();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
   const isDashboard = location.pathname === '/';
@@ -51,6 +70,14 @@ function Layout() {
     if (isDashboard && isMobile) setSidebarOpen(false);
   }, [isDashboard, isMobile]);
 
+  // Hide sidebar and layout for unauthenticated or non-admin users
+  if (!token || role !== 'admin') {
+    return <PageRoutes />;
+  }
+  const handleLogout = () => {
+    logout();
+    history.push('/login');
+  };
   return (
     <div className="app-container">
       {/* Sidebar */}
@@ -93,7 +120,7 @@ function Layout() {
           ×
         </button>
         <h2 className="nav-label" style={{ color: '#c9ada7', marginBottom: '2rem' }}>Admin Dashboard</h2>
-        <NavLink to="/" exact style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
+        <NavLink to="/admin" exact style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Dashboard
         </NavLink>
         <NavLink to="/users" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
@@ -117,6 +144,24 @@ function Layout() {
         <NavLink to="/devices" style={linkStyle} activeStyle={activeLinkStyle} onClick={handleNavClick} className="scale-hover">
           Devices
         </NavLink>
+        <button
+          onClick={handleLogout}
+          style={{
+            marginTop: '2rem',
+            background: 'linear-gradient(90deg, #c72c41 60%, #9a8c98 100%)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '12px 0',
+            fontWeight: 700,
+            fontSize: 18,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px #c9ada7',
+            width: '100%'
+          }}
+        >
+          Logout
+        </button>
       </div>
       {/* Hamburger menu for mobile */}
       <button
@@ -160,28 +205,64 @@ function Layout() {
 
 function PageRoutes() {
   return (
-    <Switch>
-      <Route path="/" exact component={DashboardPage} />
-      <Route path="/users/list" component={UsersListPage} />
-      <Route path="/users" component={UsersPage} />
-      <Route path="/cards/list" component={CardsListPage} />
-      <Route path="/cards" component={CardsPage} />
-      <Route path="/balances" exact component={BalancesPage} />
-      <Route path="/validate" component={ValidationPage} />
-      <Route path="/ride" component={RideCostPage} />
-      <Route path="/activate" component={ActivateCardPage} />
-      <Route path="/devices" exact component={DevicesListPage} />
-      <Route path="/devices/list" component={DevicesListVisualPage} />
-      <Route path="/balances/list" component={BalancesListPage} />
-      <Route path="/charges/list" component={ChargesListPage} />
-    </Switch>
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <Switch>
+        <Route path="/login" component={LoginPage} />
+        <Route path="/register" component={RegisterPage} />
+        <RoleRoute path="/admin" role="admin">
+          <DashboardPage />
+        </RoleRoute>
+        <RoleRoute path="/users/list" role="admin">
+          <UsersListPage />
+        </RoleRoute>
+        <RoleRoute path="/users" role="admin">
+          <UsersPage />
+        </RoleRoute>
+        <RoleRoute path="/cards/list" role="admin">
+          <CardsListPage />
+        </RoleRoute>
+        <RoleRoute path="/cards" role="admin">
+          <CardsPage />
+        </RoleRoute>
+        <RoleRoute path="/balances/list" role="admin">
+          <BalancesListPage />
+        </RoleRoute>
+        <RoleRoute path="/balances" role="admin">
+          <BalancesPage />
+        </RoleRoute>
+        <RoleRoute path="/validate" role="admin">
+          <ValidationPage />
+        </RoleRoute>
+        <RoleRoute path="/ride" role="admin">
+          <RideCostPage />
+        </RoleRoute>
+        <RoleRoute path="/activate" role="admin">
+          <ActivateCardPage />
+        </RoleRoute>
+        <RoleRoute path="/devices/list" role="admin">
+          <DevicesListVisualPage />
+        </RoleRoute>
+        <RoleRoute path="/devices" role="admin">
+          <DevicesListPage />
+        </RoleRoute>
+        <RoleRoute path="/charges/list" role="admin">
+          <ChargesListPage />
+        </RoleRoute>
+        <RoleRoute path="/customer" role="customer">
+          <CustomerPage />
+        </RoleRoute>
+        <Redirect to="/admin" />
+      </Switch>
+    </React.Suspense>
   );
 }
 
 const App: React.FC = () => (
-  <Router>
-    <Layout />
-  </Router>
+  <AuthProvider>
+    <Router>
+      <Layout />
+    </Router>
+  </AuthProvider>
 );
 
 export default App;

@@ -62,3 +62,11 @@ type AccessLogEntry struct {
 	Success   bool   `json:"success"` // true if access granted
 	Timestamp string `json:"timestamp"`
 }
+
+type CustomerSumBalanceRequest struct {
+	DeviceID string `json:"device_id"`
+}
+
+type CustomerSumBalanceResponse struct {
+	TotalBalance float64 `json:"total_balance"`
+}

@@ -67,6 +67,18 @@ CREATE TABLE IF NOT EXISTS card_activations (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- AUTH USERS TABLE FOR AUTHENTICATION
+CREATE TABLE IF NOT EXISTS auth_users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'customer')),
+    device_id varchar(255) REFERENCES devices(device_id) ON DELETE CASCADE, 
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+
 CREATE INDEX idx_cards_card_id ON cards(card_id);
 CREATE INDEX idx_trips_user_id ON trips(user_id);
 CREATE INDEX idx_charges_user_id ON charges(user_id);

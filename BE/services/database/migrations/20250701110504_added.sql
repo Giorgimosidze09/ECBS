@@ -74,3 +74,13 @@ CREATE TABLE "public"."trips" (
 );
 -- Create index "idx_trips_user_id" to table: "trips"
 CREATE INDEX "idx_trips_user_id" ON "public"."trips" ("user_id");
+
+-- AUTH USERS TABLE FOR AUTHENTICATION
+CREATE TABLE IF NOT EXISTS auth_users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'customer')),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
