@@ -49,7 +49,11 @@ def simulate_access():
         if authorized:
             print("Access GRANTED.")
             if platform.system() != "Darwin":
-                display.show_message("Access GRANTED")
+                if method == "card":
+                    balance = db.get_card_balance(card_id if card_id is not None else "")
+                    display.show_message(f"Access GRANTED\nBalance: {balance:.2f}")
+                else:
+                    display.show_message("Access GRANTED")
                 relay.trigger_relay()
                 buzzer.beep_granted()
             result = "granted"

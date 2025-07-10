@@ -75,3 +75,16 @@ def replace_authorized_list(new_list: list[dict]) -> None:
                 entry.get("active", 1),
             ))
         conn.commit()
+
+def get_card_balance(card_id: str) -> float:
+    with get_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT balance FROM authorized_access
+            WHERE card_id = ? AND active = 1
+            ORDER BY expires_at DESC LIMIT 1
+        """, (card_id,))
+        row = cur.fetchone()
+        if row and row["balance"] is not None:
+            return float(row["balance"])
+        return 0.0
