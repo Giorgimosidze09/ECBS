@@ -1,3 +1,151 @@
+/* Modern CSS Reset */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+:root {
+  --color-bg: #f2e9e4;
+  --color-bg-dark: #22223b;
+  --color-primary: #4a4e69;
+  --color-secondary: #9a8c98;
+  --color-accent: #c9ada7;
+  --color-card: #fff;
+  --color-shadow: rgba(42, 42, 42, 0.08);
+  --sidebar-width: 220px;
+  --sidebar-width-mobile: 64px;
+  --transition: 0.25s cubic-bezier(.4,2,.6,1);
+  --radius: 16px;
+  --font-main: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-bg);
+  font-family: var(--font-main);
+  transition: background var(--transition);
+  overflow-x: hidden;
+}
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+  background: #22223b;
+  transition: left 0.3s cubic-bezier(.4,2,.6,1);
+  z-index: 1000;
+  height: 100vh;
+  position: relative;
+  box-shadow: none;
+}
+
+.sidebar.mobile {
+  position: fixed;
+  left: -220px;
+  top: 0;
+  height: 100vh;
+  box-shadow: none;
+  transition: left 0.3s cubic-bezier(.4,2,.6,1);
+}
+
+.sidebar.mobile.open {
+  left: 0;
+  box-shadow: 0 0 0 100vw rgba(0,0,0,0.3);
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100vw;
+  background: var(--color-bg, #f8f8fa);
+  transition: padding 0.2s;
+  overflow-x: auto;
+}
+
+.hamburger {
+  display: none;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s var(--transition);
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+.scale-hover {
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.scale-hover:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 32px var(--color-shadow);
+}
+
+/* Responsive sidebar/content layout */
+@media (max-width: 900px) {
+  :root {
+    --sidebar-width: var(--sidebar-width-mobile);
+  }
+  .sidebar {
+    width: var(--sidebar-width-mobile) !important;
+    padding: 1rem 0.5rem !important;
+    min-width: unset !important;
+  }
+  .sidebar h2, .sidebar .nav-label {
+    display: none;
+  }
+  .main-content {
+    margin-left: var(--sidebar-width-mobile) !important;
+    padding: 1rem !important;
+  }
+  .app-container {
+    flex-direction: row;
+    width: 100vw;
+    max-width: 100vw;
+  }
+  .sidebar.desktop {
+    display: none !important;
+  }
+  .sidebar.mobile {
+    display: flex !important;
+    flex-direction: column;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+    z-index: 1000;
+  }
+  .main-content {
+    padding: 1rem 0.5rem;
+    width: 100vw;
+    max-width: 100vw;
+  }
+  .hamburger {
+    display: block !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .main-content {
+    padding: 0.5rem !important;
+  }
+}
+
+/* Existing styles below (for forms/buttons) */
 .styled-label {
   font-weight: 600;
   color: #22223b;

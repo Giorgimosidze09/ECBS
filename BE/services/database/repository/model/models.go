@@ -8,6 +8,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AuthUser struct {
+	ID           int32            `json:"id"`
+	Username     string           `json:"username"`
+	PasswordHash string           `json:"password_hash"`
+	Role         string           `json:"role"`
+	DeviceID     pgtype.Text      `json:"device_id"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
+
 type Balance struct {
 	ID        int32              `json:"id"`
 	UserID    pgtype.Int4        `json:"user_id"`
@@ -54,6 +64,15 @@ type Device struct {
 	Active      pgtype.Bool        `json:"active"`
 }
 
+type PayboxTransaction struct {
+	ID            pgtype.UUID      `json:"id"`
+	CardID        int32            `json:"card_id"`
+	Amount        float64          `json:"amount"`
+	Source        pgtype.Text      `json:"source"`
+	TransactionID pgtype.Text      `json:"transaction_id"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+}
+
 type Trip struct {
 	ID        int32              `json:"id"`
 	UserID    pgtype.Int4        `json:"user_id"`
@@ -70,5 +89,6 @@ type User struct {
 	Phone     pgtype.Text        `json:"phone"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	PinCode   pgtype.Text        `json:"pin_code"`
 	Deleted   pgtype.Bool        `json:"deleted"`
 }

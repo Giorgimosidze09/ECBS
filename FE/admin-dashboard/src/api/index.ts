@@ -149,6 +149,11 @@ export const activateCard = async (activationData: CardActivationRequest) => {
   return response.data as CardActivationResponse;
 };
 
+export const fetchCustomerSumBalance = async (deviceId: string): Promise<{ total_balance: number }> => {
+  const response = await axios.post(`${API_URL}/customer/sum-balance`, { device_id: deviceId });
+  return response.data;
+};
+
 // --- USERS ---
 export const updateUser = async (id: number, userData: any) => {
   const response = await axios.put(`${API_URL}/users/${id}`, userData);
@@ -201,3 +206,38 @@ export const createDevice = async (deviceData: { device_id: string; location: st
   const response = await axios.post(`${API_URL}/devices`, deviceData);
   return response.data;
 };
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+export interface LoginResponse {
+  token: string;
+  role: string;
+}
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  role: string;
+}
+export interface RegisterResponse {
+  id: number;
+  username: string;
+  role: string;
+}
+
+export const login = async (data: LoginRequest): Promise<LoginResponse> => {
+  const response = await axios.post(`${API_URL}/auth/login`, data);
+  return response.data;
+};
+
+export const register = async (data: RegisterRequest): Promise<RegisterResponse> => {
+  const response = await axios.post(`${API_URL}/auth/register`, data);
+  return response.data;
+};
+
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers['Authorization'] = `Bearer ${token}`;
+  return config;
+});

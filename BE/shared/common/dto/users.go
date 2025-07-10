@@ -67,3 +67,9 @@ type CardOutput struct {
 	Deleted    bool   `json:"deleted"`
 	Type       string `json:"type"`
 }
+
+type PayboxTopupRequest struct {
+	CardID        int     `json:"card_id"`
+	Amount        float64 `json:"amount"`
+	TransactionID string  `json:"transaction_id"`
+}
