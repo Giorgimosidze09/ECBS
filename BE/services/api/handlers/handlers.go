@@ -113,6 +113,13 @@ func AssignCardHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch user and send SMS
+	user, err := db_client.Client.GetUserByID(createdCard.UserID)
+	if err == nil && user != nil && user.Phone != "" {
+		msg := fmt.Sprintf("Your card %s has been assigned. Type: %s.", createdCard.CardID, createdCard.Type)
+		SendSMS(user.Phone, msg)
+	}
+
 	utils.RespondJSON(w, http.StatusCreated, createdCard)
 }
 
@@ -129,6 +136,13 @@ func TopUpBalanceHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Failed to top up balance: %v", err)
 		http.Error(w, "Failed to top up balance", http.StatusInternalServerError)
 		return
+	}
+
+	// Fetch user and send SMS
+	user, err := db_client.Client.GetUserByID(updatedBalance.UserID)
+	if err == nil && user != nil && user.Phone != "" {
+		msg := fmt.Sprintf("Your card %d has been topped up. New balance: %.2f.", updatedBalance.CardID, updatedBalance.Balance)
+		SendSMS(user.Phone, msg)
 	}
 
 	utils.RespondJSON(w, http.StatusCreated, updatedBalance)
@@ -644,4 +658,62 @@ func CustomerOnly(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func PayboxTopupHandler(w http.ResponseWriter, r *http.Request) {
+	var req dto.PayboxTopupRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	if req.CardID <= 0 || req.Amount <= 0 {
+		http.Error(w, "Missing card_id or invalid amount", http.StatusBadRequest)
+		return
+	}
+
+	err := db_client.Client.AddBalanceToCard(req)
+	if err != nil {
+		http.Error(w, "Failed to update balance", http.StatusInternalServerError)
+		return
+	}
+
+	// Fetch card to get user_id, then fetch user and send SMS
+	card, err := db_client.Client.GetCardByID(req.CardID)
+	if err == nil && card != nil {
+		user, err := db_client.Client.GetUserByID(card.UserID)
+		if err == nil && user != nil && user.Phone != "" {
+			msg := fmt.Sprintf("Your card %s has been topped up via PayBox. Amount: %.2f.", card.CardID, req.Amount)
+			SendSMS(user.Phone, msg)
+		}
+	}
+
+	utils.RespondJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Top-up successful",
+		"card_id": req.CardID,
+		"amount":  req.Amount,
+	})
+}
+
+// SMSProvider defines the interface for sending SMS
+// You can implement this for Twilio, local providers, etc.
+type SMSProvider interface {
+	Send(to string, message string) error
+}
+
+// DefaultSMSProvider just logs the SMS (for development)
+type DefaultSMSProvider struct{}
+
+func (d DefaultSMSProvider) Send(to string, message string) error {
+	fmt.Printf("[SMS] To: %s | Message: %s\n", to, message)
+	return nil
+}
+
+// Global SMS provider instance (swap this for a real provider)
+var smsProvider SMSProvider = DefaultSMSProvider{}
+
+// SendSMS uses the global provider
+func SendSMS(to string, message string) error {
+	// TODO: Replace smsProvider with a real implementation for your country/provider
+	return smsProvider.Send(to, message)
 }

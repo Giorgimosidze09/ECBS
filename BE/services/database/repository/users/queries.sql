@@ -210,3 +210,9 @@ WHERE id = $1;
 SELECT id, username, password_hash, role, created_at, updated_at
 FROM auth_users
 ORDER BY id; 
+
+-- name: AddBalanceToCard :one
+UPDATE balances
+SET balance = balance + $2, updated_at = NOW()
+WHERE card_id = $1
+RETURNING user_id, card_id, balance, updated_at;

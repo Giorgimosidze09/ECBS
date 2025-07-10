@@ -383,3 +383,15 @@ var LoginAuthUserHandler subscribe_manager.Handler = func(data []byte) ([]byte, 
 	}
 	return utils.Encode(user)
 }
+
+var AddBalanceToCard subscribe_manager.Handler = func(data []byte) ([]byte, error) {
+	input, err := utils.Decode[dto.PayboxTopupRequest](data)
+	if err != nil {
+		return nil, err
+	}
+	err = service.AddBalanceToCard(input)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}

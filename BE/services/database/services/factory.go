@@ -223,3 +223,12 @@ func ConvertCardActivationOutput(input repository_user.CardActivation) *dto.Card
 		ActivationEnd:   input.ActivationEnd.Time,
 	}
 }
+
+func AddBalanceToCardParams(input dto.PayboxTopupRequest) repository_user.AddBalanceToCardParams {
+	numericAmount := pgtype.Numeric{}
+	_ = numericAmount.Scan(input.Amount)
+	return repository_user.AddBalanceToCardParams{
+		CardID:  int32(input.CardID),
+		Balance: numericAmount,
+	}
+}

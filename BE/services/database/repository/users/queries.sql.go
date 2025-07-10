@@ -11,6 +11,37 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addBalanceToCard = `-- name: AddBalanceToCard :one
+UPDATE balances
+SET balance = balance + $2, updated_at = NOW()
+WHERE card_id = $1
+RETURNING user_id, card_id, balance, updated_at
+`
+
+type AddBalanceToCardParams struct {
+	CardID  int32          `json:"card_id"`
+	Balance pgtype.Numeric `json:"balance"`
+}
+
+type AddBalanceToCardRow struct {
+	UserID    pgtype.Int4        `json:"user_id"`
+	CardID    int32              `json:"card_id"`
+	Balance   pgtype.Numeric     `json:"balance"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) AddBalanceToCard(ctx context.Context, arg AddBalanceToCardParams) (AddBalanceToCardRow, error) {
+	row := q.db.QueryRow(ctx, addBalanceToCard, arg.CardID, arg.Balance)
+	var i AddBalanceToCardRow
+	err := row.Scan(
+		&i.UserID,
+		&i.CardID,
+		&i.Balance,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const balaneList = `-- name: BalaneList :many
 SELECT
   b.id, b.user_id, b.card_id, b.ride_cost, b.balance, b.updated_at,

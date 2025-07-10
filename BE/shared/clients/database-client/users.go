@@ -377,3 +377,17 @@ func (c DatabaseClient) LoginAuthUserHandler(input dto.LoginRequest) (*struct {
 		DeviceID     string `json:"device_id"`
 	}](response.Data)
 }
+
+func (c DatabaseClient) AddBalanceToCard(input dto.PayboxTopupRequest) error {
+	data, err := utils.Encode(input)
+	if err != nil {
+		return err
+	}
+
+	response := c.Publisher.Request("add_balance_to_card", data)
+	if response.Error != nil {
+		return response.Error
+	}
+
+	return nil
+}

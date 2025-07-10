@@ -74,6 +74,7 @@ func main() {
 
 	subscriber.RegisterSyncListener("auth_users.create", handlers.RegisterAuthUser)
 	subscriber.RegisterSyncListener("auth_users.get_by_username", handlers.LoginAuthUserHandler)
+	subscriber.RegisterSyncListener("add_balance_to_card", handlers.AddBalanceToCard)
 
 	fmt.Println("Database service ready")
 

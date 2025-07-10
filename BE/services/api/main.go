@@ -82,6 +82,8 @@ func main() {
 		customer.Post("/customer/sum-balance", handlers.CustomerSumBalanceHandler)
 	})
 
+	r.Post("/api/paybox/topup", handlers.PayboxTopupHandler)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
